@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ====================================================== -->
+    <!-- CheckBox                                               -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.CheckBox"
+        parent="Widget.Material3.CompoundButton.CheckBox">
+
+        <item name="buttonTint">@color/color_primary</item>
+
+        <item name="android:focusable">false</item>
+
+        <item name="android:textColor">@color/text_primary</item>
+
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:minHeight">48dp</item>
+
+        <item name="android:layout_width">wrap_content</item>
+
+        <item name="android:layout_height">wrap_content</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Remove CheckBox                                               -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.CheckBox.Remove"
+        parent="Widget.App.CheckBox">
+
+        <item name="android:text">Remove</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Radio Button                                           -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.RadioButton"
+        parent="Widget.Material3.CompoundButton.RadioButton">
+
+        <item name="buttonTint">@color/color_primary</item>
+
+        <item name="android:textColor">@color/text_primary</item>
+
+        <item name="android:focusable">false</item>
+
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:minHeight">48dp</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Switch                                                 -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.Switch"
+        parent="Widget.Material3.CompoundButton.MaterialSwitch">
+
+        <item name="trackTint">@color/color_primary_light</item>
+
+        <item name="thumbTint">@color/color_primary</item>
+
+        <item name="android:textColor">@color/text_primary</item>
+
+        <item name="android:focusable">false</item>
+
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:minHeight">48dp</item>
+
+    </style>
+
+</resources>

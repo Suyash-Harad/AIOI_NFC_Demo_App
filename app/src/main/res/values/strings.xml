@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">NFC Demo</string>
+    <string name="navigate">Navigate</string>
+    <string-array name="protocol_options">
+        <item>http</item>
+        <item>https</item>
+    </string-array>
+    <string name="company_logo">Company Logo</string>
+    <string name="company_name">Bartech Data Systems Ltd</string>
+    <string name="company_type">Ltd.</string>
+    <string name="company_tagline">Empowering Digital Transformation</string>
+    <string name="about_description">Bartech Data Systems Ltd is a leading ISO-based organization that has been providing turnkey material traceability solutions using barcode and RFID technologies since 1996. Our solutions cover a range of industries, including automotive, pharmaceuticals, chemicals, electronics and electricals, steel, and solar.\n\nOur solutions are designed to meet the unique needs of each industry, including warehouse management, supply chain management, work in process, and raw material stores management. We also have integration capabilities with major ERPs like SAP, Oracle, JDE, and more.\n\nOur solutions have been trusted by major customers such as Abbott, Siemens, General Motors, Ford, IFB, Bosch, Bridgestone, Deepak Fertilizers, and many more.</string>
+    <string name="our_mission">Our Mission</string>
+    <string name="mission_description">To empower businesses with cutting-edge technology solutions that drive growth, efficiency, and success in the digital era.</string>
+    <string name="contact_information">Contact Information</string>
+    <string name="address_icon">Address Icon</string>
+    <string name="address1_title">Address 1</string>
+    <string name="address1_text">Priya Industrial Bldg, Plot No. 5, Survey No. 50, Sativali,Near Regal Industrial Estate, Vasai (East) – 401208,Dist.Palghar, Maharashtra</string>
+    <string name="address2_title">Address 2</string>
+    <string name="address2_text">515,516, Solus, Near TCS, Hiranandani Estate,Ghodbunder Road, Thane West – 400615.Maharastra, India</string>
+    <string name="phone_icon">Phone Icon</string>
+    <string name="phone_title">Phone</string>
+    <string name="phone_text">(+91) 9769798705</string>
+    <string name="email_icon">Email Icon</string>
+    <string name="email_title">Email</string>
+    <string name="email_text">sales@bartechdata.net</string>
+    <string name="website_icon">Website Icon</string>
+    <string name="website_title">Website</string>
+    <string name="website_text">www.bartechdata.net</string>
+    <string name="follow_us">Follow Us</string>
+    <string name="linkedin">LinkedIn</string>
+    <string name="youtube">Youtube</string>
+    <string name="title_activity_main_screen">MainScreenActivity</string>
+
+    <!-- App Name and Branding -->
+    <string name="app_name_display">DVS</string>
+
+    <!-- Splash Screen Taglines -->
+    <string name="splash_tagline">Dispatch Validation System</string>
+    <string name="splash_sub_tagline">Smart. Efficient. Reliable.</string>
+
+    <!-- Feature Highlights -->
+    <string name="feature_real_time">Real-Time</string>
+    <string name="feature_smart">Smart Scan</string>
+    <string name="feature_secure">Analytics</string>
+
+    <!-- Loading States -->
+    <string name="initializing">Initializing…</string>
+    <string name="loading_data">Loading Data…</string>
+    <string name="preparing_system">Preparing System…</string>
+    <string name="almost_ready">Almost Ready…</string>
+
+    <!-- Company Information -->
+    <string name="designed_by">Designed &amp; Developed by</string>
+    <string name="company_name_splash">Bartech Data Systems Ltd.</string>
+    <string name="copyright_text">© 2026 All Rights Reserved</string>
+
+    <!-- Content Descriptions -->
+    <string name="app_logo_desc">WMS Application Logo</string>
+    <string name="company_logo_desc">Bartech Data Systems Logo</string>
+    <string name="feature_icon">Feature Icon</string>
+    <string name="decoration">Decorative Element</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+</resources>

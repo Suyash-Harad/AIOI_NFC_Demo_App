@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ====================================================== -->
+    <!-- Default Toolbar                                        -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.Toolbar"
+        parent="Widget.Material3.Toolbar">
+
+        <item name="android:background">@color/color_primary</item>
+
+        <item name="titleTextColor">@color/color_on_primary</item>
+
+        <item name="titleCentered">true</item>
+
+        <item name="subtitleTextColor">@color/white_80</item>
+
+        <item name="navigationIconTint">@color/color_on_primary</item>
+
+        <item name="android:minHeight">56dp</item>
+
+        <item name="android:elevation">4dp</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Transparent Toolbar                                    -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.Toolbar.Transparent"
+        parent="Widget.Material3.Toolbar">
+
+        <item name="android:background">@android:color/transparent</item>
+
+        <item name="titleTextColor">@color/text_primary</item>
+
+        <item name="titleCentered">true</item>
+
+        <item name="subtitleTextColor">@color/text_secondary</item>
+
+        <item name="navigationIconTint">@color/text_primary</item>
+
+        <item name="android:elevation">0dp</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Surface Toolbar                                        -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.Toolbar.Surface"
+        parent="Widget.Material3.Toolbar">
+
+        <item name="android:background">@color/surface</item>
+
+        <item name="titleTextColor">@color/text_primary</item>
+
+        <item name="titleCentered">true</item>
+
+        <item name="subtitleTextColor">@color/text_secondary</item>
+
+        <item name="navigationIconTint">@color/text_primary</item>
+
+        <item name="android:elevation">2dp</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Elevated Toolbar                                       -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.Toolbar.Elevated"
+        parent="Widget.App.Toolbar">
+
+        <item name="android:elevation">8dp</item>
+
+    </style>
+
+</resources>

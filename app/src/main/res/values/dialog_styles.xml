@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ====================================================== -->
+    <!-- Default Alert Dialog Theme                             -->
+    <!-- ====================================================== -->
+
+    <style name="CustomAlertDialog"
+        parent="ThemeOverlay.Material3.MaterialAlertDialog">
+
+        <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.App.BodyMedium</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.App.TitleLarge</item>
+
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorSecondary">@color/color_secondary</item>
+
+        <item name="backgroundTint">@color/card_background</item>
+
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.App.DialogButton.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.App.DialogButton.Negative</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.App.DialogButton.Neutral</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Positive Button                                        -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.DialogButton.Positive"
+        parent="Widget.Material3.Button.TextButton.Dialog">
+
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/color_primary</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Negative Button                                        -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.DialogButton.Negative"
+        parent="Widget.Material3.Button.TextButton.Dialog">
+
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/error</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Neutral Button                                         -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.DialogButton.Neutral"
+        parent="Widget.Material3.Button.TextButton.Dialog">
+
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_secondary</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Progress Dialog Title                                  -->
+    <!-- ====================================================== -->
+
+    <style name="TextAppearance.App.Dialog.Title"
+        parent="TextAppearance.App.TitleLarge">
+
+        <item name="android:textStyle">bold</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Progress Dialog Message                                -->
+    <!-- ====================================================== -->
+
+    <style name="TextAppearance.App.Dialog.Message"
+        parent="TextAppearance.App.BodyMedium">
+
+        <item name="android:textColor">@color/text_secondary</item>
+
+    </style>
+
+</resources>

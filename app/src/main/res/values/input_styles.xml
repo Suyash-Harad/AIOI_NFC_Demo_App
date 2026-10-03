@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ====================================================== -->
+    <!-- Default TextInputLayout                                -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.TextInputLayout"
+        parent="Widget.Material3.TextInputLayout.OutlinedBox">
+
+        <item name="boxBackgroundMode">outline</item>
+
+        <item name="boxStrokeColor">@color/input_border_focused</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+
+        <item name="hintTextColor">@color/input_hint</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+        <item name="errorTextColor">@color/error</item>
+
+        <item name="android:textColorHint">@color/input_hint</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Filled TextInputLayout                                 -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.TextInputLayout.Filled"
+        parent="Widget.Material3.TextInputLayout.FilledBox">
+
+        <item name="boxBackgroundColor">@color/input_background</item>
+
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+
+        <item name="hintTextColor">@color/input_hint</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+        <item name="errorTextColor">@color/error</item>
+
+        <item name="android:textColorHint">@color/input_hint</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Filled-Outlined TextInputLayout                                 -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.TextInputLayout.FilledOutlined"
+        parent="Widget.Material3.TextInputLayout.FilledBox">
+
+        <item name="boxBackgroundColor">@color/input_background</item>
+
+        <item name="boxBackgroundMode">outline</item>
+        <item name="boxStrokeColor">@color/input_border_focused</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+
+        <item name="hintTextColor">@color/input_hint</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+        <item name="errorTextColor">@color/error</item>
+
+        <item name="android:textColorHint">@color/input_hint</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- TextInputEditText                                      -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.TextInputEditText"
+        parent="Widget.Material3.TextInputEditText.OutlinedBox">
+
+        <item name="android:layout_width">match_parent</item>
+
+        <item name="android:layout_height">wrap_content</item>
+
+        <item name="android:textColor">@color/input_text</item>
+        <item name="android:textColorHint">@color/input_hint</item>
+
+        <item name="android:textSize">16sp</item>
+
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Scanner TextInputLayout                                                            -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.TextInput.Scanner"
+        parent="Widget.App.TextInputLayout">
+
+        <item name="endIconMode">custom</item>
+
+        <item name="android:layout_width">match_parent</item>
+
+        <item name="android:layout_height">wrap_content</item>
+
+        <item name="endIconDrawable">@drawable/ic_barcode_scan</item>
+
+        <item name="endIconTint">@color/color_primary</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Filled-Outlined TextInputLayout AutoCompleteTextView   -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.TextInputLayout.OutlinedBox.DropDown"
+        parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+        <item name="boxBackgroundColor">@color/input_background</item>
+
+        <item name="boxBackgroundMode">outline</item>
+        <item name="boxStrokeColor">@color/input_border_focused</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+
+        <item name="hintTextColor">@color/input_hint</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+        <item name="errorTextColor">@color/error</item>
+
+        <item name="android:textColorHint">@color/input_hint</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- AutoCompleteTextView                                   -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.AutoCompleteTextView"
+        parent="Widget.Material3.AutoCompleteTextView.OutlinedBox">
+
+        <item name="android:textColor">@color/input_text</item>
+        <item name="hintTextColor">@color/input_hint</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+        <item name="errorTextColor">@color/error</item>
+
+        <item name="android:textColorHint">@color/input_hint</item>
+
+        <item name="android:padding">14dp</item>
+
+        <item name="android:textSize">16sp</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Search Input                                            -->
+    <!-- ====================================================== -->
+
+    <style name="Widget.App.SearchTextInput"
+        parent="Widget.App.TextInputLayout">
+
+        <item name="startIconDrawable">@android:drawable/ic_menu_search</item>
+
+    </style>
+
+</resources>

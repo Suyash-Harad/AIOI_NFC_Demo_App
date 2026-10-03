@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ========================= -->
+    <!-- Display -->
+    <!-- ========================= -->
+
+    <style name="TextAppearance.App.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.App.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- ========================= -->
+    <!-- Headlines -->
+    <!-- ========================= -->
+
+    <style name="TextAppearance.App.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.App.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.App.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- ========================= -->
+    <!-- Titles -->
+    <!-- ========================= -->
+
+    <style name="TextAppearance.App.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.App.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- ========================= -->
+    <!-- Body -->
+    <!-- ========================= -->
+
+    <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.App.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.App.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- ========================= -->
+    <!-- Labels -->
+    <!-- ========================= -->
+
+    <style name="TextAppearance.App.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.App.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.App.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">@color/text_tertiary</item>
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Result / Barcode Display                               -->
+    <!-- ====================================================== -->
+
+    <style name="TextAppearance.App.ScannedResult"
+        parent="TextAppearance.App.BodyMedium">
+
+        <item name="android:textStyle">bold</item>
+
+        <item name="android:layout_width">match_parent</item>
+
+        <item name="android:layout_height">wrap_content</item>
+
+        <item name="android:textColor">@color/on_surface_variant</item>
+
+        <item name="android:textAlignment">center</item>
+
+        <item name="android:background">@drawable/url_background</item>
+
+        <item name="android:padding">14dp</item>
+
+        <item name="android:gravity">center</item>
+
+    </style>
+
+    <!-- ====================================================== -->
+    <!-- Result / Status Display                               -->
+    <!-- ====================================================== -->
+
+    <style name="TextAppearance.App.StatusResult"
+        parent="TextAppearance.App.BodyMedium">
+
+        <item name="android:textStyle">bold</item>
+
+        <item name="android:layout_width">match_parent</item>
+
+        <item name="android:layout_height">wrap_content</item>
+
+        <item name="android:text">Valid/Invalid Result Status</item>
+
+        <item name="android:textColor">@color/white</item>
+
+        <item name="android:textAlignment">center</item>
+
+        <item name="android:gravity">center</item>
+
+    </style>
+
+</resources>

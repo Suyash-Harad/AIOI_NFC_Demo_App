@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="transparent">#000000FF</color>
+
+    <color name="color_primary">#1E5F8C</color>
+    <color name="color_on_primary">#FFFFFF</color>
+    <color name="color_primary_dark">#15466A</color>
+    <color name="color_primary_light">#4D89B5</color>
+
+    <color name="color_secondary">#E8A33D</color>
+    <color name="color_on_secondary">#000000</color>
+    <color name="color_secondary_dark">#BD7E1F</color>
+    <color name="color_secondary_light">#F0C171</color>
+
+    <color name="color_accent_1">#5B5FC7</color>
+    <color name="color_on_accent_1">#FFFFFF</color>
+    <color name="color_accent_1_light">#8285D6</color>
+
+    <color name="color_accent_2">#6366F1</color>
+    <color name="color_on_accent_2">#FFFFFF</color>
+    <color name="color_accent_2_light">#8B8FF8</color>
+
+    <color name="background_primary">#F8FAFC</color>
+    <color name="background_secondary">#F1F5F9</color>
+    <color name="background_tertiary">#E2E8F0</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_background_secondary">#FEFEFE</color>
+
+    <color name="text_primary">#1E293B</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_tertiary">#94A3B8</color>
+    <color name="text_hint">#CBD5E1</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="white_90">#E6FFFFFF</color>
+    <color name="white_80">#CCFFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_30">#4DFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="black_90">#E6000000</color>
+    <color name="black_80">#CC000000</color>
+    <color name="black_70">#B3000000</color>
+
+    <color name="gray_50">#F9FAFB</color>
+    <color name="gray_100">#F3F4F6</color>
+    <color name="gray_200">#E5E7EB</color>
+    <color name="gray_300">#D1D5DB</color>
+    <color name="gray_400">#9CA3AF</color>
+    <color name="gray_500">#6B7280</color>
+    <color name="gray_600">#4B5563</color>
+    <color name="gray_700">#374151</color>
+    <color name="gray_800">#1F2937</color>
+    <color name="gray_900">#111827</color>
+
+    <color name="success">#10B981</color>
+    <color name="success_light">#D1FAE5</color>
+    <color name="warning">#F59E0B</color>
+    <color name="warning_light">#FEF3C7</color>
+    <color name="error">#EF4444</color>
+    <color name="error_light">#FEE2E2</color>
+    <color name="info">#3B82F6</color>
+    <color name="info_light">#DBEAFE</color>
+
+    <color name="gradient_start">#1E5F8C</color>
+    <color name="gradient_middle">#5B5FC7</color>
+    <color name="gradient_end">#8B8FF8</color>
+
+    <color name="button_primary">#1E5F8C</color>
+    <color name="button_primary_pressed">#15466A</color>
+    <color name="button_secondary">#E8A33D</color>
+    <color name="button_secondary_pressed">#BD7E1F</color>
+    <color name="button_disabled">#D1D5DB</color>
+
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F8FAFC</color>
+    <color name="on_surface">#1E293B</color>
+    <color name="on_surface_variant">#64748B</color>
+
+    <color name="border_primary">#E2E8F0</color>
+    <color name="border_secondary">#CBD5E1</color>
+    <color name="border_focus">#1E5F8C</color>
+
+    <color name="overlay_dark">#80000000</color>
+    <color name="overlay_light">#80FFFFFF</color>
+
+    <color name="shimmer_light">#F0F0F0</color>
+    <color name="shimmer_dark">#E0E0E0</color>
+    <color name="shadow">#1A000000</color>
+
+    <color name="nav_selected">#1E5F8C</color>
+    <color name="nav_unselected">#94A3B8</color>
+    <color name="nav_background">#FFFFFF</color>
+
+    <color name="input_background">#F8FAFC</color>
+    <color name="input_border">#E2E8F0</color>
+    <color name="input_border_focused">#1E5F8C</color>
+    <color name="input_text">#1E293B</color>
+    <color name="input_hint">#94A3B8</color>
+
+    <!-- ========================= -->
+    <!-- Table -->
+    <!-- ========================= -->
+    <color name="table_header_background">#1E5F8C</color>
+    <color name="table_header_text">#FFFFFF</color>
+    <color name="table_row_even">#FFFFFF</color>
+    <color name="table_row_odd">#F8FAFC</color>
+    <color name="table_divider">#E2E8F0</color>
+
+    <!-- ========================= -->
+    <!-- Pagination -->
+    <!-- ========================= -->
+    <color name="pagination_background">#FFFFFF</color>
+    <color name="pagination_active_background">#5B5FC7</color>
+    <color name="pagination_active_icon">#FFFFFF</color>
+    <color name="pagination_idle_icon">#64748B</color>
+    <color name="pagination_disabled_icon">#CBD5E1</color>
+
+    <!-- ========================= -->
+    <!-- Section Icon Chips -->
+    <!-- ========================= -->
+    <color name="icon_chip_background">#E7EFF6</color>
+    <color name="icon_chip_tint">#1E5F8C</color>
+
+</resources>
