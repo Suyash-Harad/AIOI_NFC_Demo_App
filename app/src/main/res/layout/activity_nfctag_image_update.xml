@@ -5,6 +5,173 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background_primary"
+    android:fillViewport="true"
     tools:context=".NFCTagImageUpdateActivity">
+
+    <!-- ====================================================== -->
+    <!-- Header                                                  -->
+    <!-- ====================================================== -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/color_primary"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            style="@style/Widget.App.Header.IconButton"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_arrow_back" />
+
+        <TextView
+            android:id="@+id/txtTitle"
+            style="@style/Widget.App.Header.Title"
+            android:text="NFC Image Upload" />
+
+        <ImageButton
+            android:id="@+id/btnRefresh"
+            style="@style/Widget.App.Header.IconButton"
+            android:contentDescription="Refresh"
+            android:src="@drawable/ic_refresh" />
+
+    </LinearLayout>
+
+    <!-- ====================================================== -->
+    <!-- Scrollable Content                                      -->
+    <!-- ====================================================== -->
+    <ScrollView
+        android:id="@+id/contentScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/buttonLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ================================================== -->
+            <!-- NFC Instruction Card                               -->
+            <!-- ================================================== -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/nfcInstructionCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:id="@+id/nfcInstructionTitle"
+                        style="@style/TextAppearance.App.TitleMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="NFC Tag"
+                        android:textAlignment="center" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="14dp"
+                        android:background="@color/border_primary" />
+
+                    <!-- NFC Icon -->
+                    <ImageView
+                        android:id="@+id/nfcIcon"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:contentDescription="NFC"
+                        android:src="@drawable/nfc_tag_read" />
+
+                    <TextView
+                        android:id="@+id/nfcInstructionText"
+                        style="@style/TextAppearance.App.TitleMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Tap NFC Tag to Read"
+                        android:textAlignment="center" />
+
+                    <TextView
+                        android:id="@+id/nfcInstructionSubText"
+                        style="@style/TextAppearance.App.BodyMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Hold your phone near the NFC tag to read its stored data."
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- ====================================================== -->
+    <!-- Bottom Action Bar                                       -->
+    <!-- ====================================================== -->
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/card_background"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:weightSum="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+
+        <!-- Update NFC Tag -->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpdate"
+            style="@style/Widget.App.Button.Disabled"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:text="Update Image" />
+
+
+        <!-- Clear -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClear"
+            style="@style/Widget.App.Button.Outlined"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="Clear" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

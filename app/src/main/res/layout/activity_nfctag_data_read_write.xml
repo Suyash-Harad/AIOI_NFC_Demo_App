@@ -13,7 +13,6 @@
     <!-- ====================================================== -->
     <!-- Header                                                  -->
     <!-- ====================================================== -->
-
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
@@ -47,11 +46,9 @@
 
     </LinearLayout>
 
-
     <!-- ====================================================== -->
     <!-- Scrollable Content                                      -->
     <!-- ====================================================== -->
-
     <ScrollView
         android:id="@+id/contentScrollView"
         android:layout_width="0dp"
@@ -69,11 +66,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-
             <!-- ================================================== -->
             <!-- NFC Instruction Card                               -->
             <!-- ================================================== -->
-
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/nfcInstructionCard"
                 android:layout_width="match_parent"
@@ -133,11 +128,9 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-
             <!-- ================================================== -->
             <!-- NFC Tag Information Card                           -->
             <!-- ================================================== -->
-
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/tagInformationCard"
                 android:layout_width="match_parent"
@@ -324,11 +317,9 @@
 
     </ScrollView>
 
-
     <!-- ====================================================== -->
     <!-- Bottom Action Bar                                       -->
     <!-- ====================================================== -->
-
     <LinearLayout
         android:id="@+id/buttonLayout"
         android:layout_width="match_parent"
