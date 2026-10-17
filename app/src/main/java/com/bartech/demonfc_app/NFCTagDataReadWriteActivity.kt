@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.ViewGroup
@@ -42,6 +43,29 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
     @Volatile
     private var isProcessingTag = false
+
+    /**
+     * Screen flow:
+     *
+     * WAITING_FOR_READ -> tap tag            -> READING
+     * READING          -> read ok            -> EDITING   (phone can be moved away)
+     * EDITING          -> tap SAME tag again -> VERIFIED  (Update button enabled)
+     * VERIFIED         -> press Update       -> WRITING
+     * WRITING          -> write ok           -> EDITING   (tap again to write again)
+     *                     write failed       -> VERIFIED  (retry)
+     */
+    private enum class FlowState {
+        WAITING_FOR_READ,
+        READING,
+        EDITING,
+        VERIFIED,
+        WRITING
+    }
+
+    private var flowState = FlowState.WAITING_FOR_READ
+
+    /** IDm of the tag that was read; the verification tap must match it. */
+    private var readTagIdm: ByteArray? = null
 
     private val smartTagManager = SmartTagManager()
 
@@ -117,28 +141,60 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
         super.onNewIntent(intent)
 
-        if (isProcessingTag) {
+        val tag = getTagFromIntent(intent) ?: return
+        val idm = tag.id
+
+        when (flowState) {
+
+            FlowState.WAITING_FOR_READ -> handleNfcTag(tag, idm)
+
+            FlowState.EDITING,
+            FlowState.VERIFIED -> verifyTag(tag, idm)
+
+            FlowState.READING,
+            FlowState.WRITING -> {
+                // Busy - ignore extra taps.
+            }
+        }
+    }
+
+    private fun getTagFromIntent(intent: Intent): Tag? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        }
+
+    // ============================================================
+    // Second tap: confirm it is the same tag, then enable Update
+    // ============================================================
+
+    private fun verifyTag(tag: Tag, idm: ByteArray) {
+
+        val expected = readTagIdm
+
+        if (expected == null || !expected.contentEquals(idm)) {
+            showWarningResult(
+                "This is a different tag. Tap the same tag that was read, " +
+                        "or press Clear to start over."
+            )
             return
         }
 
-        val tag =
-            intent.getParcelableExtra<Tag>(
-                NfcAdapter.EXTRA_TAG
-            )
-                ?: return
-
-        val idm =
-            intent.getByteArrayExtra(
-                NfcAdapter.EXTRA_ID
-            )
-                ?: tag.id
-
+        // Fresh Tag handle - the old one is stale once the phone moved away.
         currentTag = tag
+        flowState = FlowState.VERIFIED
 
-        handleNfcTag(
-            tag = tag,
-            idm = idm
-        )
+        setUpdateButtonAppearance(true)
+
+        binding.tagStatusValue.text = "Tag verified"
+        binding.nfcInstructionTitle.text = "Tag Verified"
+        binding.nfcInstructionText.text = "Ready to Update"
+        binding.nfcInstructionSubText.text =
+            "Keep the phone near the tag and press Update Tag."
+        binding.editInstructionText.text =
+            "Tag verified. Press Update Tag while holding the phone near the tag."
     }
 
     // ============================================================
@@ -229,14 +285,12 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
         isNfcUsable = true
 
-        binding.nfcInstructionTitle.text =
-            "AIOI Smart Tag"
-
-        binding.nfcInstructionText.text =
-            "Tap Smart Tag to Read"
-
-        binding.nfcInstructionSubText.text =
-            "Hold the phone near the AIOI Smart Tag."
+        // Only show the first-step text when we are really at the first step;
+        // otherwise coming back from the background would wipe the current
+        // step's instructions.
+        if (flowState == FlowState.WAITING_FOR_READ) {
+            showWaitingForReadText()
+        }
 
         return true
     }
@@ -282,6 +336,7 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
         }
 
         isProcessingTag = true
+        flowState = FlowState.READING
 
         currentTag = tag
 
@@ -300,7 +355,7 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
                 "Reading Smart Tag..."
 
             binding.nfcInstructionSubText.text =
-                "Please keep the phone near the tag."
+                "Please keep the phone on the tag."
 
             showLoading(
                 "Reading Smart Tag..."
@@ -309,15 +364,9 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
         Thread {
 
-            try {
+            var readOk = false
 
-                /*
-                 * IMPORTANT:
-                 *
-                 * selectTag() only selects the NFC-F technology.
-                 * connect() happens immediately afterwards on
-                 * the same worker operation.
-                 */
+            try {
 
                 val info =
                     smartTagManager.selectTag(tag)
@@ -337,21 +386,15 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
                         size = USER_DATA_SIZE
                     )
 
-                // --------------------------------------------------
-                // FIRST DISPLAY TEST
-                // --------------------------------------------------
-
-                val display = smartTagManager.createDisplay()
-
-                display.showText(
-                    text = "HELLO",
-                    x = 20,
-                    y = 20,
-                    font = 3,
-                    fieldNo = 1
-                )
+                // NOTE: the old "HELLO" display test was removed here.
+                // Redrawing the tag's e-paper display takes seconds and
+                // forced the user to keep the phone on the tag. Reading
+                // user data only needs a fraction of a second.
 
                 val text = decodeUserData(data)
+
+                readOk = true
+                readTagIdm = idm.copyOf()
 
                 runOnUiThread {
 
@@ -369,28 +412,37 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
                     binding.tagDataInput.setText(text)
 
+                    flowState = FlowState.EDITING
+
+                    // Update stays disabled until the same tag is tapped again.
+                    setUpdateButtonAppearance(false)
+
                     binding.nfcInstructionTitle.text =
                         "Smart Tag Read Successfully"
 
                     binding.nfcInstructionText.text =
-                        "Data Loaded"
+                        "Step 2: Edit the data"
 
                     binding.nfcInstructionSubText.text =
-                        "Edit the data and tap Update Tag."
+                        "You can move the phone away now. After editing, " +
+                                "tap the same tag again to enable Update Tag."
 
-                    binding.btnUpdate.isEnabled =
-                        true
+                    binding.editInstructionText.text =
+                        "Edit the data above, then tap the same tag again " +
+                                "to unlock Update Tag."
 
                     showTagDataSection()
 
                     showSuccessResult(
-                        "Smart Tag data read successfully."
+                        "Smart Tag read. You can move the phone away."
                     )
                 }
 
             } catch (e: Exception) {
 
                 runOnUiThread {
+
+                    flowState = FlowState.WAITING_FOR_READ
 
                     binding.tagStatusValue.text =
                         "Read Failed"
@@ -402,7 +454,7 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
                         "Reading failed"
 
                     binding.nfcInstructionSubText.text =
-                        "Keep the phone near the Smart Tag and try again."
+                        "Keep the phone on the Smart Tag and try again."
 
                     showErrorResult(
                         getRootExceptionMessage(e)
@@ -456,6 +508,13 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
             return
         }
 
+        if (flowState != FlowState.VERIFIED) {
+            showWarningResult(
+                "Tap the same tag again first, then press Update Tag."
+            )
+            return
+        }
+
         val tag = currentTag
         if (tag == null) {
             showWarningResult("Scan a Smart Tag first before updating it.")
@@ -476,10 +535,11 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
         }
 
         isProcessingTag = true
+        flowState = FlowState.WRITING
         setUpdateButtonAppearance(false)
         binding.nfcInstructionText.text = "Updating Smart Tag..."
         binding.nfcInstructionSubText.text =
-            "Please keep the phone near the tag until writing is complete."
+            "Please keep the phone on the tag until writing is complete."
         showLoading("Updating Smart Tag...")
 
         Thread {
@@ -502,25 +562,37 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
                 smartTagManager.waitForIdle()
 
                 runOnUiThread {
+                    // Written - go back to editing. To write again the user
+                    // taps the tag once more.
+                    flowState = FlowState.EDITING
+                    setUpdateButtonAppearance(false)
+
                     binding.tagIdValue.text = info.idmHex()
                     binding.tagTypeValue.text = formatModel(info.model.family)
                     binding.tagStatusValue.text = "Updated Successfully"
                     binding.nfcInstructionTitle.text = "Smart Tag Updated Successfully"
                     binding.nfcInstructionText.text = "Data Written"
                     binding.nfcInstructionSubText.text =
-                        "The new data has been written to the Smart Tag."
-                    setUpdateButtonAppearance(true)
+                        "To write again, edit the data and tap the same tag once more."
+                    binding.editInstructionText.text =
+                        "Edit the data, then tap the same tag again to unlock Update Tag."
                     showSuccessResult("Smart Tag updated successfully.")
                 }
             } catch (e: Exception) {
                 runOnUiThread {
+                    // Most likely the phone moved away. Keep Update enabled so
+                    // the user can hold the phone on the tag and press again.
+                    flowState = FlowState.VERIFIED
+                    setUpdateButtonAppearance(true)
+
                     binding.tagStatusValue.text = "Write Failed"
                     binding.nfcInstructionTitle.text = "Unable to Update Smart Tag"
                     binding.nfcInstructionText.text = "Writing failed"
                     binding.nfcInstructionSubText.text =
-                        "Keep the phone near the Smart Tag and try again."
-                    setUpdateButtonAppearance(true)
-                    showErrorResult(e.message ?: "Unable to update the Smart Tag.")
+                        "Hold the phone on the Smart Tag and press Update Tag again."
+                    showErrorResult(
+                        getRootExceptionMessage(e)
+                    )
                 }
             } finally {
                 smartTagManager.disconnect()
@@ -556,6 +628,8 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
     private fun resetScreen() {
         currentTag = null
+        readTagIdm = null
+        flowState = FlowState.WAITING_FOR_READ
         isProcessingTag = false
         smartTagManager.disconnect()
 
@@ -566,12 +640,22 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
         binding.tagStatusValue.text = "--"
         binding.tagDataInput.setText("")
         setUpdateButtonAppearance(false)
+        showWaitingForReadText()
+    }
+
+    private fun showWaitingForReadText() {
         binding.nfcInstructionTitle.text = "AIOI Smart Tag"
         binding.nfcInstructionText.text = "Tap Smart Tag to Read"
         binding.nfcInstructionSubText.text =
-            "Hold the phone near the AIOI Smart Tag to read its stored data."
+            "Hold the phone near the AIOI Smart Tag. You can move it away " +
+                    "as soon as the data is loaded."
     }
 
+    /**
+     * Single place that controls the Update button: enabled state,
+     * background color and text color. Always call this instead of
+     * setting btnUpdate.isEnabled directly.
+     */
     private fun setUpdateButtonAppearance(enabled: Boolean) {
 
         binding.btnUpdate.isEnabled = enabled
