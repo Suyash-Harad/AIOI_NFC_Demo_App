@@ -86,8 +86,8 @@ class SmartTagProtocol(
      * Waits until the Smart Tag is no longer busy.
      */
     fun waitForIdle(
-        maxAttempts: Int = 600,
-        delayMs: Long = 50L
+        maxAttempts: Int = 1500,
+        delayMs: Long = 20L
     ): SmartTagStatus {
 
         require(maxAttempts > 0) {
@@ -129,7 +129,7 @@ class SmartTagProtocol(
             paramData = ByteArray(8)
         )
 
-        waitForIdle()
+        waitForRefreshComplete()
     }
 
     /**
@@ -198,7 +198,8 @@ class SmartTagProtocol(
         width: Int,
         height: Int,
         drawMode: Int = 0,
-        layoutNo: Int = 0
+        layoutNo: Int = 0,
+        onProgress: ((sentFrames: Int, totalFrames: Int) -> Unit)? = null
     ) {
 
         require(imageData.isNotEmpty()) {
@@ -251,13 +252,63 @@ class SmartTagProtocol(
             mode.toByte()
         )
 
-        executeCommand(
+        val frames = SmartTagCommandBuilder.buildCommand(
             functionNo = SmartTagCommandBuilder.COMMAND_SHOW_DISPLAY3,
             paramData = params,
             functionData = imageData
         )
 
-        waitForIdle()
+        require(frames.isNotEmpty()) { "Failed to build Smart Tag command." }
+
+        frames.forEachIndexed { index, frame ->
+            sendCommandFrame(frame)
+            onProgress?.invoke(index + 1, frames.size)
+        }
+
+        // The e-paper refresh starts after the last frame. Wait until it has
+        // really finished, otherwise lifting the phone early leaves part of
+        // the previous image on the display.
+        waitForRefreshComplete()
+    }
+
+    /**
+     * Waits until the display refresh that was just started has finished.
+     *
+     * Unlike [waitForIdle], this does not trust a "not busy" answer that
+     * arrives right after the last frame (the tag may not have started
+     * refreshing yet). It waits until BUSY has been seen, or until a short
+     * grace period has passed, and then until the tag is idle again.
+     */
+    fun waitForRefreshComplete(
+        graceMs: Long = 600L,
+        timeoutMs: Long = 30_000L,
+        pollMs: Long = 20L
+    ): SmartTagStatus {
+
+        val start = System.currentTimeMillis()
+        var sawBusy = false
+
+        while (true) {
+
+            val current = checkStatus()
+
+            if (current == SmartTagStatus.BUSY) {
+                sawBusy = true
+            } else if (current != SmartTagStatus.UNKNOWN) {
+                val elapsed = System.currentTimeMillis() - start
+                if (sawBusy || elapsed >= graceMs) {
+                    return current
+                }
+            }
+
+            if (System.currentTimeMillis() - start > timeoutMs) {
+                throw SmartTagException(
+                    "The display did not finish refreshing in time."
+                )
+            }
+
+            Thread.sleep(pollMs)
+        }
     }
 
     /**

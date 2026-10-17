@@ -32,9 +32,9 @@ import androidx.core.view.WindowInsetsCompat
 import com.bartech.demonfc_app.databinding.ActivityNfctagImageUpdateBinding
 import com.bartech.demonfc_app.databinding.LoadingDialogBinding
 import com.bartech.demonfc_app.smarttag.SmartTagManager
+import com.bartech.demonfc_app.smarttag.core.AioiSmartTagDetector
 import com.bartech.demonfc_app.smarttag.display.SmartTagDisplayPainter
 import com.bartech.demonfc_app.smarttag.model.SmartTagProductFamily
-import com.bartech.demonfc_app.smarttag.model.SmartTagStatus
 import com.google.android.material.snackbar.Snackbar
 import java.io.IOException
 
@@ -42,7 +42,7 @@ import java.io.IOException
  * Pick an image from the device and upload it to an AIOI Smart Tag display.
  *
  * Flow:
- *  1. Tap the tag          -> detect model and display size (quick, no drawing)
+ *  1. Tap the tag          -> detect model and display size (instant, from its ID)
  *  2. Move the phone away  -> Select Image, preview, dither / fill options
  *  3. Tap the SAME tag     -> verified, Upload Image is enabled
  *  4. Press Upload Image   -> keep the phone on the tag while it uploads
@@ -101,8 +101,15 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
     /** Image composed to exactly the display size (before 1-bit conversion). */
     private var composedBitmap: Bitmap? = null
 
+    /**
+     * The image already converted to the tag's 1-bit format. Prepared when
+     * the preview is built, so nothing has to be computed while the phone
+     * is on the tag.
+     */
+    private var packedImage: ByteArray? = null
+
     private val hasImage: Boolean
-        get() = composedBitmap != null
+        get() = packedImage != null
 
     private val pickImage =
         registerForActivityResult(
@@ -271,70 +278,49 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
 
         if (!isNfcUsable) return
 
-        flowState = FlowState.READING_TAG
+        // The model and display size are encoded in the tag's ID, so no
+        // NFC session is needed here. Detection is instant and the user
+        // can lift the phone straight away.
+        if (!AioiSmartTagDetector.isSmartTag(idm)) {
+            showErrorResult(
+                "The detected NFC tag is not a supported AIOI Smart Tag."
+            )
+            return
+        }
+
+        val model = AioiSmartTagDetector.detectModel(idm)
+        val display = AioiSmartTagDetector.getDisplayInfo(model)
+
+        if (display == null) {
+            showErrorResult(
+                "The display size of this Smart Tag model is unknown."
+            )
+            return
+        }
+
         currentTag = tag
+        detectedTagIdm = idm.copyOf()
+        displayWidth = display.width
+        displayHeight = display.height
+
+        binding.tagIdValue.text = formatTagId(idm)
+        binding.tagTypeValue.text = formatModel(model.family)
+        binding.tagDisplayValue.text = "${display.width} x ${display.height} px"
+        binding.tagStatusValue.text = "Detected"
+
+        binding.tagInformationCard.visibility = View.VISIBLE
+        binding.imageCard.visibility = View.VISIBLE
+
+        isVerified = false
+        flowState = FlowState.READY
+
+        // If an image was chosen earlier, rebuild it for this tag's display.
+        if (sourceBitmap != null) {
+            rebuildPreview()
+        }
+
         refreshUi()
-
-        showLoading("Reading Smart Tag...")
-
-        Thread {
-            try {
-                val info = smartTagManager.selectTag(tag)
-                smartTagManager.connect()
-
-                val status = smartTagManager.checkStatus()
-                if (status == SmartTagStatus.BUSY) {
-                    smartTagManager.waitForIdle()
-                }
-
-                val display = info.displayInfo
-                    ?: throw IOException(
-                        "The display size of this Smart Tag model is unknown."
-                    )
-
-                runOnUiThread {
-                    detectedTagIdm = idm.copyOf()
-                    displayWidth = display.width
-                    displayHeight = display.height
-
-                    binding.tagIdValue.text = info.idmHex()
-                    binding.tagTypeValue.text = formatModel(info.model.family)
-                    binding.tagDisplayValue.text =
-                        "${display.width} x ${display.height} px"
-                    binding.tagStatusValue.text =
-                        "${status.name} / FW ${info.firmwareVersionNumber()}"
-
-                    binding.tagInformationCard.visibility = View.VISIBLE
-                    binding.imageCard.visibility = View.VISIBLE
-
-                    isVerified = false
-                    flowState = FlowState.READY
-
-                    // If an image was chosen earlier, rebuild it for this
-                    // tag's display size.
-                    if (sourceBitmap != null) {
-                        rebuildPreview()
-                    }
-
-                    refreshUi()
-                    showSuccessResult("Smart Tag detected. You can move the phone away.")
-                }
-
-            } catch (e: Exception) {
-                runOnUiThread {
-                    flowState = FlowState.WAITING_FOR_TAG
-                    binding.tagStatusValue.text = "Read Failed"
-                    refreshUi()
-                    binding.nfcInstructionTitle.text = "Unable to Read Smart Tag"
-                    binding.nfcInstructionSubText.text =
-                        "Keep the phone on the Smart Tag and try again."
-                    showErrorResult(getRootExceptionMessage(e))
-                }
-            } finally {
-                smartTagManager.disconnect()
-                runOnUiThread { hideLoading() }
-            }
-        }.start()
+        showSuccessResult("Smart Tag detected. You can move the phone away.")
     }
 
     // ============================================================
@@ -540,6 +526,9 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
             dither = binding.switchDither.isChecked
         )
 
+        // Convert to the tag's 1-bit format now (same result as the preview).
+        packedImage = painter.getSmartTagImage(dither = false)
+
         val preview = painter.getPreview()
 
         // Nearest-neighbour upscale keeps the pixels crisp.
@@ -572,65 +561,96 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
         }
 
         val tag = currentTag
-        val image = composedBitmap
+        val data = packedImage
 
         if (tag == null) {
             showWarningResult("Tap a Smart Tag first.")
             return
         }
 
-        if (image == null) {
+        if (data == null) {
             showWarningResult("Select an image first.")
             return
         }
 
-        val dither = binding.switchDither.isChecked
         val width = displayWidth
         val height = displayHeight
+        val deepClean = binding.switchDeepClean.isChecked
 
         flowState = FlowState.UPLOADING
         refreshUi()
 
-        showLoading("Uploading image...\nKeep the phone on the tag.")
+        showLoading("Connecting to tag...\nKeep the phone on the tag.")
 
         Thread {
+            val startTime = System.currentTimeMillis()
+
             try {
-                val info = smartTagManager.selectTag(tag)
+                smartTagManager.selectTag(tag)
                 smartTagManager.connect()
 
-                val status = smartTagManager.checkStatus()
-                if (status == SmartTagStatus.BUSY) {
-                    smartTagManager.waitForIdle()
+                // One status round-trip is enough (it also syncs the
+                // command sequence number with the tag).
+                smartTagManager.waitForIdle()
+
+                if (deepClean) {
+                    runOnUiThread {
+                        showLoading("Clearing display...\nKeep the phone on the tag.")
+                    }
+                    smartTagManager.clearDisplay()
                 }
 
-                val display = smartTagManager.createDisplay()
+                runOnUiThread {
+                    showLoading("Sending image... 0%\nKeep the phone on the tag.")
+                }
 
-                // Sends the image and waits until the display has refreshed.
-                display.showImage(
-                    bitmap = image,
+                var lastPercent = -1
+
+                // Sends the packed image and waits until the display has
+                // completely refreshed.
+                smartTagManager.showImageData(
+                    imageData = data,
                     x = 0,
                     y = 0,
                     width = width,
                     height = height,
-                    dither = dither
+                    onProgress = { sent, total ->
+                        val percent = sent * 100 / total
+                        if (percent != lastPercent) {
+                            lastPercent = percent
+                            runOnUiThread {
+                                showLoading(
+                                    if (sent == total) {
+                                        "Refreshing display...\nKeep the phone on the tag."
+                                    } else {
+                                        "Sending image... $percent%\nKeep the phone on the tag."
+                                    }
+                                )
+                            }
+                        }
+                    }
                 )
+
+                val seconds =
+                    (System.currentTimeMillis() - startTime) / 1000.0
 
                 runOnUiThread {
                     // Done - require another tap before the next upload.
                     isVerified = false
                     flowState = FlowState.READY
 
-                    binding.tagIdValue.text = info.idmHex()
-                    binding.tagStatusValue.text = "Image uploaded"
-
                     refreshUi()
+
+                    binding.tagStatusValue.text =
+                        "Image uploaded (%.1f s)".format(seconds)
 
                     binding.nfcInstructionTitle.text = "Image Uploaded Successfully"
                     binding.nfcInstructionText.text = "Display Updated"
                     binding.nfcInstructionSubText.text =
-                        "To upload again, tap the same tag once more."
+                        "You can remove the phone now. To upload again, " +
+                                "tap the same tag once more."
 
-                    showSuccessResult("Image uploaded to the Smart Tag.")
+                    showSuccessResult("Image uploaded. You can remove the phone.")
                 }
 
             } catch (e: Exception) {
@@ -722,6 +742,7 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
         binding.btnSelectImage.isEnabled = ready
         binding.switchFill.isEnabled = ready
         binding.switchDither.isEnabled = ready
+        binding.switchDeepClean.isEnabled = ready
 
         setUploadButtonAppearance(ready && hasImage && isVerified)
     }
@@ -762,6 +783,7 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
         displayHeight = 0
         sourceBitmap = null
         composedBitmap = null
+        packedImage = null
 
         binding.imagePreview.setImageDrawable(null)
         binding.imagePreview.visibility = View.GONE
@@ -812,6 +834,10 @@ class NFCTagImageUpdateActivity : AppCompatActivity() {
 
         binding.switchFill.setOnCheckedChangeListener(optionListener)
         binding.switchDither.setOnCheckedChangeListener(optionListener)
+    }
+
+    private fun formatTagId(id: ByteArray): String = id.joinToString(" ") {
+        "%02X".format(it.toInt() and 0xFF)
     }
 
     private fun formatModel(family: SmartTagProductFamily): String = when (family) {

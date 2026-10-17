@@ -398,8 +398,14 @@ class SmartTagDisplayPainter(
                 Color.blue(pixel)
             )
 
+            // A flat image (all white / all black) has no range to stretch;
+            // stretching it would turn an all-white image black.
             result[index] =
-                (average - range.x) * adjustment
+                if (rangeSize == 0) {
+                    average.toDouble()
+                } else {
+                    (average - range.x) * adjustment
+                }
         }
 
         return result

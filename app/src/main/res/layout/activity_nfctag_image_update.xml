@@ -331,6 +331,13 @@
                         android:checked="true"
                         android:text="Dither (better for photos)" />
 
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchDeepClean"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Clean display first (removes ghosting, slower)" />
+
                     <TextView
                         android:id="@+id/imageInfoText"
                         style="@style/TextAppearance.App.BodyMedium"

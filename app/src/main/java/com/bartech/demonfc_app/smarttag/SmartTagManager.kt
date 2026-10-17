@@ -256,6 +256,37 @@ class SmartTagManager {
         protocol.clearDisplay()
     }
 
+    /**
+     * Sends already packed 1-bit image data (see
+     * SmartTagDisplayPainter.getSmartTagImage) and waits until the display
+     * has finished refreshing. No image processing happens here, so the
+     * phone is only needed on the tag for the actual transfer.
+     */
+    fun showImageData(
+        imageData: ByteArray,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        drawMode: Int = 0,
+        layoutNo: Int = 0,
+        onProgress: ((sentFrames: Int, totalFrames: Int) -> Unit)? = null
+    ) {
+
+        ensureConnected()
+
+        protocol.showImage(
+            imageData = imageData,
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            drawMode = drawMode,
+            layoutNo = layoutNo,
+            onProgress = onProgress
+        )
+    }
+
     fun saveLayout(
         layoutNo: Int
     ) {
