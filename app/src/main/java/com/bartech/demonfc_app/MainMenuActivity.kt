@@ -44,6 +44,11 @@ class MainMenuActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.nfcTextTagImageUpdateLayout.setOnClickListener {
+            val intent = Intent(this, NFCTagTextImageUpdateActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     private fun showLoading(message: String = "Please wait...") {

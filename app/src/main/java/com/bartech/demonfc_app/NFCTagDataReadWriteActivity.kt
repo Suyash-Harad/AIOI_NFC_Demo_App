@@ -14,6 +14,7 @@ import android.provider.Settings
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -21,10 +22,13 @@ import androidx.core.view.WindowInsetsCompat
 import com.bartech.demonfc_app.databinding.ActivityNfctagDataReadWriteBinding
 import com.bartech.demonfc_app.databinding.LoadingDialogBinding
 import com.bartech.demonfc_app.smarttag.SmartTagManager
+import com.bartech.demonfc_app.smarttag.display.SmartTagDisplayPainter
+import com.bartech.demonfc_app.smarttag.display.SmartTagInfoLayout
 import com.bartech.demonfc_app.smarttag.model.SmartTagProductFamily
 import com.bartech.demonfc_app.smarttag.model.SmartTagStatus
 import com.google.android.material.snackbar.Snackbar
 import java.nio.charset.StandardCharsets
+import java.util.Date
 
 class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
@@ -75,6 +79,22 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
          * user-area region. AIOI limits one user-area write operation to 512 bytes.
          */
         private const val USER_DATA_SIZE = 512
+
+        /**
+         * Clear the tag screen before drawing the new text, so nothing of the
+         * previous content stays behind. Costs one extra screen refresh; set
+         * to false if speed matters more.
+         */
+        private const val CLEAR_DISPLAY_BEFORE_TEXT = true
+
+        /**
+         * false = draw the whole info screen as ONE image (same path as the
+         * Image Update screen, which is known to work on your tags).
+         * true  = use AIOI text fields (13+ fields, ~480 bytes, 3 NFC frames).
+         * With text fields only the header showed up, so the image path is
+         * the default.
+         */
+        private const val USE_TAG_TEXT_FIELDS = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -539,14 +559,15 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
         setUpdateButtonAppearance(false)
         binding.nfcInstructionText.text = "Updating Smart Tag..."
         binding.nfcInstructionSubText.text =
-            "Please keep the phone on the tag until writing is complete."
-        showLoading("Updating Smart Tag...")
+            "Please keep the phone on the tag until the screen has refreshed."
+        showLoading("Writing data...\nKeep the phone on the tag.")
 
         Thread {
+            var dataWritten = false
+
             try {
                 val info = smartTagManager.selectTag(tag)
                 smartTagManager.connect()
-                smartTagManager.checkStatus()
                 smartTagManager.waitForIdle()
 
                 // Write a complete fixed-size region so old text cannot remain
@@ -560,6 +581,31 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
                 )
 
                 smartTagManager.waitForIdle()
+                dataWritten = true
+
+                // Show tag ID, data and the current date/time on the tag.
+                val updatedAt = Date()
+                val displayInfo = info.displayInfo
+                var displayUpdated = false
+
+                if (displayInfo != null) {
+                    runOnUiThread {
+                        showLoading("Updating tag screen...\nKeep the phone on the tag.")
+                    }
+
+//                    showInfoOnTagDisplay(
+//                        family = info.model.family,
+//                        width = displayInfo.width,
+//                        height = displayInfo.height,
+//                        idm = tag.id,
+//                        updatedAt = updatedAt,
+//                        text = newText
+//                    )
+
+                    displayUpdated = true
+                }
+
+                val updatedLabel = SmartTagInfoLayout.formatDateTime(updatedAt, 21)
 
                 runOnUiThread {
                     // Written - go back to editing. To write again the user
@@ -569,14 +615,22 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
                     binding.tagIdValue.text = info.idmHex()
                     binding.tagTypeValue.text = formatModel(info.model.family)
-                    binding.tagStatusValue.text = "Updated Successfully"
+                    binding.tagStatusValue.text = "Updated $updatedLabel"
                     binding.nfcInstructionTitle.text = "Smart Tag Updated Successfully"
-                    binding.nfcInstructionText.text = "Data Written"
+                    binding.nfcInstructionText.text =
+                        if (displayUpdated) "Data and Screen Updated" else "Data Written"
                     binding.nfcInstructionSubText.text =
-                        "To write again, edit the data and tap the same tag once more."
+                        "You can remove the phone now. To write again, edit the " +
+                                "data and tap the same tag once more."
                     binding.editInstructionText.text =
                         "Edit the data, then tap the same tag again to unlock Update Tag."
-                    showSuccessResult("Smart Tag updated successfully.")
+                    showSuccessResult(
+                        if (displayUpdated) {
+                            "Smart Tag and its screen updated."
+                        } else {
+                            "Data written. This tag's screen size is unknown, so the screen was not changed."
+                        }
+                    )
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -585,14 +639,192 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
                     flowState = FlowState.VERIFIED
                     setUpdateButtonAppearance(true)
 
-                    binding.tagStatusValue.text = "Write Failed"
+                    binding.tagStatusValue.text =
+                        if (dataWritten) "Screen Update Failed" else "Write Failed"
                     binding.nfcInstructionTitle.text = "Unable to Update Smart Tag"
-                    binding.nfcInstructionText.text = "Writing failed"
+                    binding.nfcInstructionText.text =
+                        if (dataWritten) "Data saved, screen not updated" else "Writing failed"
                     binding.nfcInstructionSubText.text =
                         "Hold the phone on the Smart Tag and press Update Tag again."
                     showErrorResult(
                         getRootExceptionMessage(e)
                     )
+                }
+            } finally {
+                smartTagManager.disconnect()
+                runOnUiThread {
+                    hideLoading()
+                    isProcessingTag = false
+                }
+            }
+        }.start()
+    }
+
+    /**
+     * Draws "Tag ID / date and time / data" on the tag's own screen.
+     *
+     * AIOI SmartTag 2.9 and 3.7 use the tag's text fields (the same method
+     * as the official sample). Other models are drawn as an image.
+     *
+     * Runs on the worker thread while the phone is on the tag.
+     */
+    private fun showInfoOnTagDisplay(
+        family: SmartTagProductFamily,
+        width: Int,
+        height: Int,
+        idm: ByteArray,
+        updatedAt: Date,
+        text: String
+    ) {
+        val idHex = idm.joinToString("") {
+            "%02X".format(it.toInt() and 0xFF)
+        }
+
+        val items = SmartTagInfoLayout.build(
+            width = width,
+            height = height,
+            tagIdHex = idHex,
+            updatedAt = updatedAt,
+            data = text
+        )
+
+        val useTextFields = USE_TAG_TEXT_FIELDS &&
+                (family == SmartTagProductFamily.SMARTTAG_29 ||
+                        family == SmartTagProductFamily.SMARTTAG_37)
+
+        if (CLEAR_DISPLAY_BEFORE_TEXT) {
+            smartTagManager.clearDisplay()
+        }
+
+        if (useTextFields) {
+            smartTagManager.createDisplay().showFields(
+                SmartTagInfoLayout.toFields(items)
+            )
+        } else {
+            val bitmap = SmartTagInfoLayout.toBitmap(items, width, height)
+
+            val painter = SmartTagDisplayPainter(width, height)
+            painter.putImage(
+                bitmap = bitmap,
+                x = 0,
+                y = 0,
+                width = width,
+                height = height,
+                dither = false
+            )
+
+            smartTagManager.showImageData(
+                imageData = painter.getSmartTagImage(dither = false),
+                x = 0,
+                y = 0,
+                width = width,
+                height = height
+            )
+        }
+    }
+
+    // ============================================================
+    // Clear Display: erase the tag data AND the tag screen
+    // ============================================================
+
+    private fun confirmClearDisplay() {
+
+        if (!isNfcUsable) {
+            showEnableNfcWarning("Enable NFC before clearing a Smart Tag.")
+            return
+        }
+
+        if (isProcessingTag) {
+            showWarningResult("Please wait for the current Smart Tag operation to finish.")
+            return
+        }
+
+        if (flowState != FlowState.EDITING && flowState != FlowState.VERIFIED) {
+            showWarningResult("Tap a Smart Tag to read it first.")
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Clear Display")
+            .setMessage(
+                "This erases the data stored on the tag and clears the tag's " +
+                        "screen. Keep the phone on the tag while it works."
+            )
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Clear") { _, _ -> clearTagDisplay() }
+            .show()
+    }
+
+    private fun clearTagDisplay() {
+
+        val tag = currentTag
+
+        if (tag == null) {
+            showWarningResult("Tap a Smart Tag first.")
+            return
+        }
+
+        val previousState = flowState
+
+        isProcessingTag = true
+        flowState = FlowState.WRITING
+        setUpdateButtonAppearance(false)
+
+        binding.nfcInstructionText.text = "Clearing Smart Tag..."
+        binding.nfcInstructionSubText.text =
+            "Please keep the phone on the tag until the screen is clear."
+        showLoading("Clearing tag data...\nKeep the phone on the tag.")
+
+        Thread {
+            try {
+                smartTagManager.selectTag(tag)
+                smartTagManager.connect()
+                smartTagManager.waitForIdle()
+
+                // Erase the stored data (a full zero-filled region).
+                smartTagManager.writeUserData(
+                    startAddress = 0,
+                    data = ByteArray(USER_DATA_SIZE)
+                )
+                smartTagManager.waitForIdle()
+
+                runOnUiThread {
+                    showLoading("Clearing tag screen...\nKeep the phone on the tag.")
+                }
+
+                // Clear the screen and wait until it has really refreshed.
+                smartTagManager.clearDisplay()
+
+                runOnUiThread {
+                    binding.tagDataInput.setText("")
+
+                    // The tag now holds no data. To write new data the user
+                    // taps the same tag again.
+                    flowState = FlowState.EDITING
+                    setUpdateButtonAppearance(false)
+
+                    binding.tagStatusValue.text = "Cleared"
+                    binding.nfcInstructionTitle.text = "Smart Tag Cleared"
+                    binding.nfcInstructionText.text = "Data and Screen Cleared"
+                    binding.nfcInstructionSubText.text =
+                        "You can remove the phone now. To write new data, enter " +
+                                "it and tap the same tag again."
+                    binding.editInstructionText.text =
+                        "Enter the data, then tap the same tag again to unlock Update Tag."
+                    showSuccessResult("Tag data and screen cleared.")
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    // Go back to where we were so the user can retry.
+                    flowState = previousState
+                    setUpdateButtonAppearance(previousState == FlowState.VERIFIED)
+
+                    binding.tagStatusValue.text = "Clear Failed"
+                    binding.nfcInstructionTitle.text = "Unable to Clear Smart Tag"
+                    binding.nfcInstructionText.text = "Clearing failed"
+                    binding.nfcInstructionSubText.text =
+                        "Tap the tag again, hold the phone on it and press Clear Display again."
+                    showErrorResult(getRootExceptionMessage(e))
                 }
             } finally {
                 smartTagManager.disconnect()
@@ -660,6 +892,12 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
 
         binding.btnUpdate.isEnabled = enabled
 
+        // Clear Display needs a tag that has been read, and no operation
+        // running (call this after flowState has been set).
+        binding.btnClear.isEnabled =
+            isNfcUsable &&
+                    (flowState == FlowState.EDITING || flowState == FlowState.VERIFIED)
+
         if (enabled) {
             binding.btnUpdate.backgroundTintList =
                 ContextCompat.getColorStateList(this, R.color.success)
@@ -696,9 +934,11 @@ class NFCTagDataReadWriteActivity : AppCompatActivity() {
             }
         }
 
+        // Clear Display: erases the tag data and the tag screen.
+        // (The refresh button in the header resets this screen.)
         binding.btnClear.setOnClickListener {
 
-            resetScreen()
+            confirmClearDisplay()
         }
 
         binding.btnUpdate.setOnClickListener {

@@ -180,8 +180,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:layout_marginHorizontal="16dp"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginHorizontal="16dp">
 
                         <LinearLayout
                             android:id="@+id/nfcTagImageUpdateLayout"
@@ -206,6 +205,52 @@
                                 android:layout_marginStart="16dp"
                                 android:layout_weight="1"
                                 android:text="Tag Image Update"
+                                android:textAppearance="@style/TextAppearance.App.BodyLarge"
+                                android:textColor="@color/on_surface" />
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:contentDescription="@string/navigate"
+                                android:src="@drawable/ic_next"
+                                app:tint="@color/on_surface_variant" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/tagTextImageUpdateCard"
+                        style="@style/Widget.App.Card.Elevated"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginBottom="16dp">
+
+                        <LinearLayout
+                            android:id="@+id/nfcTextTagImageUpdateLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:paddingHorizontal="20dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="About Us"
+                                android:src="@drawable/text_image"
+                                app:tint="@color/on_surface" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_weight="1"
+                                android:text="Text + Image Update"
                                 android:textAppearance="@style/TextAppearance.App.BodyLarge"
                                 android:textColor="@color/on_surface" />
 

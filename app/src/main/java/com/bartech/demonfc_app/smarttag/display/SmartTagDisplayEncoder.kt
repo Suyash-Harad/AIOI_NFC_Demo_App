@@ -54,11 +54,14 @@ object SmartTagDisplayEncoder {
      *
      * COMMAND_ADD_FIELD_SHOW_TEXT
      *
-     * The AIOI format consists of:
+     * This matches the official AIOI sample (createFieldAndText). Every
+     * field becomes ONE TLV entry that holds the field definition followed
+     * directly by its raw text:
      *
-     *     Field definitions
-     *     +
-     *     Field text data
+     *     [fieldNo][length][field definition][raw text]
+     *
+     * Rectangle fields have no text, so their entry only holds the
+     * definition.
      */
     fun encodeAddAndShow(
         fields: List<SmartTagDisplayField>,
@@ -69,16 +72,34 @@ object SmartTagDisplayEncoder {
             "At least one display field is required."
         }
 
-        val fieldData =
-            encodeFieldDefinitions(fields)
+        var result = ByteArray(0)
 
-        val textData =
-            encodeFieldTexts(
-                fields = fields,
-                characterCode = characterCode
-            )
+        for (field in fields) {
 
-        return fieldData + textData
+            val definition = field.createFieldData()
+
+            // createTextData() returns [fieldNo][length][text]; only the
+            // raw text is needed inside the combined entry.
+            val rawText = field.createTextData(characterCode)?.let {
+                it.copyOfRange(2, it.size)
+            } ?: ByteArray(0)
+
+            val entryData = definition + rawText
+
+            require(entryData.size <= 255) {
+                "A display field cannot exceed 255 bytes " +
+                        "(field ${field.fieldNo.toInt() and 0xFF})."
+            }
+
+            val entry = ByteArray(2 + entryData.size)
+            entry[0] = field.fieldNo
+            entry[1] = entryData.size.toByte()
+            entryData.copyInto(entry, 2)
+
+            result += entry
+        }
+
+        return result
     }
 
 

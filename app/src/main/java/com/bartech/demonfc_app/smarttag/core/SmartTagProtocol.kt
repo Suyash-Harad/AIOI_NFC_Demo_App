@@ -355,7 +355,7 @@ class SmartTagProtocol(
             functionData = functionData
         )
 
-        waitForIdle()
+        waitForRefreshComplete()
     }
 
     /**
