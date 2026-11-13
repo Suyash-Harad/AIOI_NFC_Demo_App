@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Compact button used on the template designer toolbars -->
+    <style name="Widget.App.Button.Tool" parent="Widget.App.Button.Outlined">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+</resources>
