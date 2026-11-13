@@ -303,331 +303,331 @@
     <!-- SIDE DRAWER                                                -->
     <!-- ========================================================= -->
 
-    <!--    <com.google.android.material.card.MaterialCardView-->
-    <!--        android:id="@+id/navigationDrawer"-->
-    <!--        android:layout_width="320dp"-->
-    <!--        android:layout_height="match_parent"-->
-    <!--        android:layout_gravity="start"-->
-    <!--        android:backgroundTint="@color/surface"-->
-    <!--        app:cardCornerRadius="0dp"-->
-    <!--        app:cardElevation="8dp">-->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/navigationDrawer"
+            android:layout_width="320dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:backgroundTint="@color/surface"
+            app:cardCornerRadius="0dp"
+            app:cardElevation="8dp">
 
-    <!--        <LinearLayout-->
-    <!--            android:layout_width="match_parent"-->
-    <!--            android:layout_height="match_parent"-->
-    <!--            android:orientation="vertical">-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-    <!--            &lt;!&ndash; Drawer Header &ndash;&gt;-->
-    <!--            <LinearLayout-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="wrap_content"-->
-    <!--                android:background="@color/color_primary"-->
-    <!--                android:orientation="vertical"-->
-    <!--                android:padding="20dp">-->
+                <!-- Drawer Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/color_primary"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-    <!--                <TextView-->
-    <!--                    android:id="@+id/drawerUsername"-->
-    <!--                    android:layout_width="wrap_content"-->
-    <!--                    android:layout_height="wrap_content"-->
-    <!--                    android:text="Username"-->
-    <!--                    android:textAppearance="@style/TextAppearance.App.TitleLarge"-->
-    <!--                    android:textColor="@color/white" />-->
+                    <TextView
+                        android:id="@+id/drawerUsername"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Username"
+                        android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                        android:textColor="@color/white" />
 
-    <!--                <TextView-->
-    <!--                    android:id="@+id/drawerUserRole"-->
-    <!--                    android:layout_width="wrap_content"-->
-    <!--                    android:layout_height="wrap_content"-->
-    <!--                    android:layout_marginTop="4dp"-->
-    <!--                    android:text="User Role"-->
-    <!--                    android:textAppearance="@style/TextAppearance.App.BodyMedium"-->
-    <!--                    android:textColor="@color/white_70" />-->
+                    <TextView
+                        android:id="@+id/drawerUserRole"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="User Role"
+                        android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                        android:textColor="@color/white_70" />
 
-    <!--            </LinearLayout>-->
+                </LinearLayout>
 
-    <!--            &lt;!&ndash; View Profile &ndash;&gt;-->
-    <!--            <LinearLayout-->
-    <!--                android:id="@+id/viewProfileLayout"-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="56dp"-->
-    <!--                android:background="?attr/selectableItemBackground"-->
-    <!--                android:clickable="true"-->
-    <!--                android:focusable="true"-->
-    <!--                android:gravity="center_vertical"-->
-    <!--                android:paddingHorizontal="20dp">-->
+                <!-- View Profile -->
+                <LinearLayout
+                    android:id="@+id/viewProfileLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="20dp">
 
-    <!--                <ImageView-->
-    <!--                    android:layout_width="24dp"-->
-    <!--                    android:layout_height="24dp"-->
-    <!--                    android:src="@drawable/ic_person"-->
-    <!--                    android:contentDescription="View Profile"-->
-    <!--                    app:tint="@color/on_surface" />-->
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_person"
+                        android:contentDescription="View Profile"
+                        app:tint="@color/on_surface" />
 
-    <!--                <TextView-->
-    <!--                    android:layout_width="0dp"-->
-    <!--                    android:layout_height="wrap_content"-->
-    <!--                    android:layout_weight="1"-->
-    <!--                    android:layout_marginStart="16dp"-->
-    <!--                    android:text="View Profile"-->
-    <!--                    android:textAppearance="@style/TextAppearance.App.BodyLarge"-->
-    <!--                    android:textColor="@color/on_surface" />-->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="View Profile"
+                        android:textAppearance="@style/TextAppearance.App.BodyLarge"
+                        android:textColor="@color/on_surface" />
 
-    <!--                <ImageView-->
-    <!--                    android:layout_width="20dp"-->
-    <!--                    android:layout_height="20dp"-->
-    <!--                    android:src="@drawable/ic_next"-->
-    <!--                    android:contentDescription="@string/navigate"-->
-    <!--                    app:tint="@color/on_surface_variant" />-->
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_next"
+                        android:contentDescription="@string/navigate"
+                        app:tint="@color/on_surface_variant" />
 
-    <!--            </LinearLayout>-->
-
-
-    <!--            &lt;!&ndash; About Us &ndash;&gt;-->
-    <!--            <LinearLayout-->
-    <!--                android:id="@+id/aboutUsLayout"-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="56dp"-->
-    <!--                android:background="?attr/selectableItemBackground"-->
-    <!--                android:clickable="true"-->
-    <!--                android:focusable="true"-->
-    <!--                android:gravity="center_vertical"-->
-    <!--                android:paddingHorizontal="20dp">-->
-
-    <!--                <ImageView-->
-    <!--                    android:layout_width="24dp"-->
-    <!--                    android:layout_height="24dp"-->
-    <!--                    android:src="@drawable/ic_info"-->
-    <!--                    android:contentDescription="About Us"-->
-    <!--                    app:tint="@color/on_surface" />-->
-
-    <!--                <TextView-->
-    <!--                    android:layout_width="0dp"-->
-    <!--                    android:layout_height="wrap_content"-->
-    <!--                    android:layout_weight="1"-->
-    <!--                    android:layout_marginStart="16dp"-->
-    <!--                    android:text="About Us"-->
-    <!--                    android:textAppearance="@style/TextAppearance.App.BodyLarge"-->
-    <!--                    android:textColor="@color/on_surface" />-->
-
-    <!--                <ImageView-->
-    <!--                    android:layout_width="20dp"-->
-    <!--                    android:layout_height="20dp"-->
-    <!--                    android:src="@drawable/ic_next"-->
-    <!--                    android:contentDescription="@string/navigate"-->
-    <!--                    app:tint="@color/on_surface_variant" />-->
-
-    <!--            </LinearLayout>-->
-
-    <!--            <View-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="1dp"-->
-    <!--                android:background="@color/on_surface_variant" />-->
+                </LinearLayout>
 
 
-    <!--            &lt;!&ndash; Drawer Options &ndash;&gt;-->
-    <!--            <ScrollView-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="0dp"-->
-    <!--                android:layout_weight="1">-->
+                <!-- About Us -->
+                <LinearLayout
+                    android:id="@+id/aboutUsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="20dp">
 
-    <!--                <LinearLayout-->
-    <!--                    android:layout_width="match_parent"-->
-    <!--                    android:layout_height="wrap_content"-->
-    <!--                    android:orientation="vertical"-->
-    <!--                    android:paddingVertical="12dp">-->
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_info"
+                        android:contentDescription="About Us"
+                        app:tint="@color/on_surface" />
 
-    <!--                    <TextView-->
-    <!--                        android:layout_width="match_parent"-->
-    <!--                        android:layout_height="wrap_content"-->
-    <!--                        android:letterSpacing="0.1"-->
-    <!--                        android:paddingHorizontal="20dp"-->
-    <!--                        android:paddingVertical="10dp"-->
-    <!--                        android:text="APP PREFERENCES"-->
-    <!--                        android:textAppearance="@style/TextAppearance.App.LabelLarge"-->
-    <!--                        android:textColor="@color/on_surface_variant" />-->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="About Us"
+                        android:textAppearance="@style/TextAppearance.App.BodyLarge"
+                        android:textColor="@color/on_surface" />
 
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_next"
+                        android:contentDescription="@string/navigate"
+                        app:tint="@color/on_surface_variant" />
 
-    <!--                    &lt;!&ndash; Voice Switch &ndash;&gt;-->
-    <!--                    <LinearLayout-->
-    <!--                        android:id="@+id/voiceSettingLayout"-->
-    <!--                        android:layout_width="match_parent"-->
-    <!--                        android:layout_height="wrap_content"-->
-    <!--                        android:gravity="center_vertical"-->
-    <!--                        android:minHeight="56dp"-->
-    <!--                        android:orientation="horizontal"-->
-    <!--                        android:paddingHorizontal="20dp">-->
+                </LinearLayout>
 
-    <!--                        <TextView-->
-    <!--                            android:layout_width="0dp"-->
-    <!--                            android:layout_height="wrap_content"-->
-    <!--                            android:layout_weight="1"-->
-    <!--                            android:text="Result Voice"-->
-    <!--                            android:textAppearance="@style/TextAppearance.App.BodyLarge" />-->
-
-    <!--                        <com.google.android.material.button.MaterialButtonToggleGroup-->
-    <!--                            android:id="@+id/voiceToggleGroup"-->
-    <!--                            android:layout_width="wrap_content"-->
-    <!--                            android:layout_height="wrap_content"-->
-    <!--                            app:selectionRequired="true"-->
-    <!--                            app:singleSelection="true">-->
-
-    <!--                            <com.google.android.material.button.MaterialButton-->
-    <!--                                android:id="@+id/voiceOnBtn"-->
-    <!--                                style="@style/Widget.App.Button.Outlined"-->
-    <!--                                android:layout_width="wrap_content"-->
-    <!--                                android:layout_height="40dp"-->
-    <!--                                android:minWidth="0dp"-->
-    <!--                                android:paddingHorizontal="16dp"-->
-    <!--                                android:text="On"-->
-    <!--                                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />-->
-
-    <!--                            <com.google.android.material.button.MaterialButton-->
-    <!--                                android:id="@+id/voiceOffBtn"-->
-    <!--                                style="@style/Widget.App.Button.Outlined"-->
-    <!--                                android:layout_width="wrap_content"-->
-    <!--                                android:layout_height="40dp"-->
-    <!--                                android:minWidth="0dp"-->
-    <!--                                android:paddingHorizontal="16dp"-->
-    <!--                                android:text="Off"-->
-    <!--                                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />-->
-
-    <!--                        </com.google.android.material.button.MaterialButtonToggleGroup>-->
-
-    <!--                    </LinearLayout>-->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/on_surface_variant" />
 
 
-    <!--                    &lt;!&ndash; Buzzer Switch &ndash;&gt;-->
-    <!--                    <LinearLayout-->
-    <!--                        android:id="@+id/buzzerSettingLayout"-->
-    <!--                        android:layout_width="match_parent"-->
-    <!--                        android:layout_height="wrap_content"-->
-    <!--                        android:gravity="center_vertical"-->
-    <!--                        android:minHeight="56dp"-->
-    <!--                        android:orientation="horizontal"-->
-    <!--                        android:paddingHorizontal="20dp">-->
+                <!-- Drawer Options -->
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
 
-    <!--                        <TextView-->
-    <!--                            android:layout_width="0dp"-->
-    <!--                            android:layout_height="wrap_content"-->
-    <!--                            android:layout_weight="1"-->
-    <!--                            android:text="Error/Warning Buzzer"-->
-    <!--                            android:textAppearance="@style/TextAppearance.App.BodyLarge" />-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingVertical="12dp">
 
-    <!--                        <com.google.android.material.button.MaterialButtonToggleGroup-->
-    <!--                            android:id="@+id/buzzerToggleGroup"-->
-    <!--                            android:layout_width="wrap_content"-->
-    <!--                            android:layout_height="wrap_content"-->
-    <!--                            app:selectionRequired="true"-->
-    <!--                            app:singleSelection="true">-->
-
-    <!--                            <com.google.android.material.button.MaterialButton-->
-    <!--                                android:id="@+id/buzzerOnBtn"-->
-    <!--                                style="@style/Widget.App.Button.Outlined"-->
-    <!--                                android:layout_width="wrap_content"-->
-    <!--                                android:layout_height="40dp"-->
-    <!--                                android:minWidth="0dp"-->
-    <!--                                android:paddingHorizontal="16dp"-->
-    <!--                                android:text="On"-->
-    <!--                                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />-->
-
-    <!--                            <com.google.android.material.button.MaterialButton-->
-    <!--                                android:id="@+id/buzzerOffBtn"-->
-    <!--                                style="@style/Widget.App.Button.Outlined"-->
-    <!--                                android:layout_width="wrap_content"-->
-    <!--                                android:layout_height="40dp"-->
-    <!--                                android:minWidth="0dp"-->
-    <!--                                android:paddingHorizontal="16dp"-->
-    <!--                                android:text="Off"-->
-    <!--                                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />-->
-
-    <!--                        </com.google.android.material.button.MaterialButtonToggleGroup>-->
-
-    <!--                    </LinearLayout>-->
-
-    <!--                    &lt;!&ndash; Flash Screen Switch &ndash;&gt;-->
-    <!--                    <LinearLayout-->
-    <!--                        android:id="@+id/flashScreenSettingLayout"-->
-    <!--                        android:layout_width="match_parent"-->
-    <!--                        android:layout_height="wrap_content"-->
-    <!--                        android:gravity="center_vertical"-->
-    <!--                        android:minHeight="56dp"-->
-    <!--                        android:orientation="horizontal"-->
-    <!--                        android:paddingHorizontal="20dp">-->
-
-    <!--                        <TextView-->
-    <!--                            android:layout_width="0dp"-->
-    <!--                            android:layout_height="wrap_content"-->
-    <!--                            android:layout_weight="1"-->
-    <!--                            android:text="Error/Warning Flash"-->
-    <!--                            android:textAppearance="@style/TextAppearance.App.BodyLarge" />-->
-
-    <!--                        <com.google.android.material.button.MaterialButtonToggleGroup-->
-    <!--                            android:id="@+id/flashToggleGroup"-->
-    <!--                            android:layout_width="wrap_content"-->
-    <!--                            android:layout_height="wrap_content"-->
-    <!--                            app:selectionRequired="true"-->
-    <!--                            app:singleSelection="true">-->
-
-    <!--                            <com.google.android.material.button.MaterialButton-->
-    <!--                                android:id="@+id/flashOnBtn"-->
-    <!--                                style="@style/Widget.App.Button.Outlined"-->
-    <!--                                android:layout_width="wrap_content"-->
-    <!--                                android:layout_height="40dp"-->
-    <!--                                android:minWidth="0dp"-->
-    <!--                                android:paddingHorizontal="16dp"-->
-    <!--                                android:text="On"-->
-    <!--                                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />-->
-
-    <!--                            <com.google.android.material.button.MaterialButton-->
-    <!--                                android:id="@+id/flashOffBtn"-->
-    <!--                                style="@style/Widget.App.Button.Outlined"-->
-    <!--                                android:layout_width="wrap_content"-->
-    <!--                                android:layout_height="40dp"-->
-    <!--                                android:minWidth="0dp"-->
-    <!--                                android:paddingHorizontal="16dp"-->
-    <!--                                android:text="Off"-->
-    <!--                                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />-->
-
-    <!--                        </com.google.android.material.button.MaterialButtonToggleGroup>-->
-
-    <!--                    </LinearLayout>-->
-
-    <!--                </LinearLayout>-->
-
-    <!--            </ScrollView>-->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
+                            android:paddingHorizontal="20dp"
+                            android:paddingVertical="10dp"
+                            android:text="APP PREFERENCES"
+                            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                            android:textColor="@color/on_surface_variant" />
 
 
-    <!--            &lt;!&ndash; Bottom Actions &ndash;&gt;-->
-    <!--            <View-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="1dp"-->
-    <!--                android:background="@color/on_surface_variant" />-->
+                        <!-- Voice Switch -->
+                        <LinearLayout
+                            android:id="@+id/voiceSettingLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="20dp">
 
-    <!--            <LinearLayout-->
-    <!--                android:id="@+id/btnLogoutLayout"-->
-    <!--                android:layout_width="match_parent"-->
-    <!--                android:layout_height="56dp"-->
-    <!--                android:clickable="true"-->
-    <!--                android:focusable="true"-->
-    <!--                android:gravity="center_vertical"-->
-    <!--                android:paddingHorizontal="20dp">-->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Result Voice"
+                                android:textAppearance="@style/TextAppearance.App.BodyLarge" />
 
-    <!--                <ImageView-->
-    <!--                    android:layout_width="24dp"-->
-    <!--                    android:layout_height="24dp"-->
-    <!--                    android:src="@drawable/ic_logout"-->
-    <!--                    app:tint="@color/on_surface" />-->
+                            <com.google.android.material.button.MaterialButtonToggleGroup
+                                android:id="@+id/voiceToggleGroup"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:selectionRequired="true"
+                                app:singleSelection="true">
 
-    <!--                <TextView-->
-    <!--                    android:layout_width="wrap_content"-->
-    <!--                    android:layout_height="wrap_content"-->
-    <!--                    android:layout_marginStart="16dp"-->
-    <!--                    android:text="Logout"-->
-    <!--                    android:textAppearance="@style/TextAppearance.App.BodyLarge" />-->
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/voiceOnBtn"
+                                    style="@style/Widget.App.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:text="On"
+                                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
 
-    <!--            </LinearLayout>-->
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/voiceOffBtn"
+                                    style="@style/Widget.App.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:text="Off"
+                                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
 
-    <!--        </LinearLayout>-->
+                            </com.google.android.material.button.MaterialButtonToggleGroup>
 
-    <!--    </com.google.android.material.card.MaterialCardView>-->
+                        </LinearLayout>
+
+
+                        <!-- Buzzer Switch -->
+                        <LinearLayout
+                            android:id="@+id/buzzerSettingLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="20dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Error/Warning Buzzer"
+                                android:textAppearance="@style/TextAppearance.App.BodyLarge" />
+
+                            <com.google.android.material.button.MaterialButtonToggleGroup
+                                android:id="@+id/buzzerToggleGroup"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:selectionRequired="true"
+                                app:singleSelection="true">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buzzerOnBtn"
+                                    style="@style/Widget.App.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:text="On"
+                                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buzzerOffBtn"
+                                    style="@style/Widget.App.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:text="Off"
+                                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                        </LinearLayout>
+
+                        <!-- Flash Screen Switch -->
+                        <LinearLayout
+                            android:id="@+id/flashScreenSettingLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="56dp"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="20dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Error/Warning Flash"
+                                android:textAppearance="@style/TextAppearance.App.BodyLarge" />
+
+                            <com.google.android.material.button.MaterialButtonToggleGroup
+                                android:id="@+id/flashToggleGroup"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:selectionRequired="true"
+                                app:singleSelection="true">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/flashOnBtn"
+                                    style="@style/Widget.App.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:text="On"
+                                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/flashOffBtn"
+                                    style="@style/Widget.App.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="40dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:text="Off"
+                                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </ScrollView>
+
+
+                <!-- Bottom Actions -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/on_surface_variant" />
+
+                <LinearLayout
+                    android:id="@+id/btnLogoutLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="20dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_logout"
+                        app:tint="@color/on_surface" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="Logout"
+                        android:textAppearance="@style/TextAppearance.App.BodyLarge" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
 </androidx.drawerlayout.widget.DrawerLayout>
