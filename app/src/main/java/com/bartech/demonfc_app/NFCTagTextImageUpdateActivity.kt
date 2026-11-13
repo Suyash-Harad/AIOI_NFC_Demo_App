@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.nfc.NfcAdapter
 import android.nfc.Tag
@@ -15,38 +14,48 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
-import android.util.Patterns
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bartech.demonfc_app.databinding.ActivityNfctagTextImageUpdateBinding
+import com.bartech.demonfc_app.databinding.ItemTemplateFieldBinding
 import com.bartech.demonfc_app.databinding.LoadingDialogBinding
 import com.bartech.demonfc_app.smarttag.SmartTagManager
 import com.bartech.demonfc_app.smarttag.core.AioiSmartTagDetector
 import com.bartech.demonfc_app.smarttag.display.SmartTagDisplayPainter
-import com.bartech.demonfc_app.smarttag.display.SmartTagIdCardRenderer
 import com.bartech.demonfc_app.smarttag.model.SmartTagProductFamily
+import com.bartech.demonfc_app.template.Template
+import com.bartech.demonfc_app.template.TemplateRenderer
+import com.bartech.demonfc_app.template.TemplateRepository
+import com.bartech.demonfc_app.template.TemplateTagCodec
+import com.bartech.demonfc_app.template.TemplateTagException
 import com.google.android.material.snackbar.Snackbar
 
 /**
- * Employee ID card: enter Employee ID, Name, Email and Phone, combine them with the
- * Bartech logo into one picture sized for the tag's display, and upload that
- * picture to the Smart Tag.
+ * Template based update of a Smart Tag.
  *
  * Flow:
- *  1. Tap the tag          -> detect model and display size (instant)
- *  2. Move the phone away  -> fill in Name / Email / Phone (live preview)
- *  3. Tap the SAME tag     -> verified, Upload ID Card is enabled
- *  4. Press Upload ID Card -> keep the phone on the tag while it uploads
+ *  1. Tap the tag          -> detect model / display size AND read the record
+ *                             stored in the tag memory. If the tag already shows
+ *                             a template, that template is selected in the
+ *                             dropdown and its fields are filled in. Otherwise
+ *                             the dropdown and fields stay blank.
+ *  2. Move the phone away  -> choose a template (or design one), fill the fields
+ *  3. Tap the SAME tag     -> verified, Upload is enabled
+ *  4. Press Upload to Tag  -> writes the record to the tag memory, then the image
  */
 class NFCTagTextImageUpdateActivity : AppCompatActivity() {
 
@@ -79,6 +88,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
 
     private enum class FlowState {
         WAITING_FOR_TAG,
+        READING,
         READY,
         UPLOADING,
         CLEARING
@@ -90,21 +100,36 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
     private var isVerified = false
 
     // ------------------------------------------------------------
-    // Display / card
+    // Display / templates
     // ------------------------------------------------------------
 
     private var displayWidth = 0
     private var displayHeight = 0
 
-    /** Logo is decoded once and reused for every preview / upload. */
-    private val logo: Bitmap? by lazy { loadLogo() }
+    private lateinit var repo: TemplateRepository
+
+    /** Entries of the dropdown (index 0 of the spinner is the "Select" hint). */
+    private var templates: List<Template> = emptyList()
+
+    /** The template currently shown in the form and preview. */
+    private var activeTemplate: Template? = null
+
+    /** Entered values by field name. Kept when switching template so equal names carry over. */
+    private val fieldValues = linkedMapOf<String, String>()
+
+    private val fieldInputs = ArrayList<EditText>()
+
+    private val editorLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val id = result.data?.getStringExtra(TemplateEditorActivity.RESULT_TEMPLATE_ID)
+                onEditorFinished(id)
+            }
+        }
 
     companion object {
-        private const val MAX_EMPLOYEE_ID_LENGTH = 15
-        private const val MAX_NAME_LENGTH = 40
-        private const val MAX_EMAIL_LENGTH = 50
-        private val EMPLOYEE_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9\\-_/]*$")
-        private val PHONE_REGEX = Regex("^\\+?[0-9 ()\\-]{7,20}$")
+        private const val MAX_VALUE_LENGTH = 100
+        private const val SELECT_HINT = "Select a template"
     }
 
     // ============================================================
@@ -123,8 +148,11 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
             insets
         }
 
+        repo = TemplateRepository(applicationContext)
+
         setupClickListeners()
-        setupTextWatchers()
+        setupTemplateSpinner()
+        reloadTemplates(null)
         resetScreen()
     }
 
@@ -168,6 +196,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         when (flowState) {
             FlowState.WAITING_FOR_TAG -> detectTag(tag, idm)
             FlowState.READY -> verifyTag(tag, idm)
+            FlowState.READING,
             FlowState.UPLOADING,
             FlowState.CLEARING -> {
                 // Busy - ignore extra taps.
@@ -235,7 +264,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
     }
 
     // ============================================================
-    // Step 1: detect tag and display size
+    // Step 1: detect the tag and read what it currently shows
     // ============================================================
 
     private fun detectTag(tag: Tag, idm: ByteArray) {
@@ -263,16 +292,131 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         binding.tagIdValue.text = formatTagId(idm)
         binding.tagTypeValue.text = formatModel(model.family)
         binding.tagDisplayValue.text = "${display.width} x ${display.height} px"
-        binding.tagStatusValue.text = "Detected"
+        binding.tagStatusValue.text = "Reading tag memory..."
 
         binding.tagInformationCard.visibility = View.VISIBLE
         binding.formCard.visibility = View.VISIBLE
         binding.previewCard.visibility = View.VISIBLE
 
         isVerified = false
-        flowState = FlowState.READY
+        flowState = FlowState.READING
+        refreshUi()
 
+        showLoading("Reading tag...\nKeep the phone on the tag.")
+
+        Thread {
+            var record: TemplateTagCodec.Record? = null
+            var error: Exception? = null
+
+            try {
+                record = readTagRecord(tag)
+            } catch (e: Exception) {
+                error = e
+            } finally {
+                smartTagManager.disconnect()
+            }
+
+            runOnUiThread {
+                hideLoading()
+                flowState = FlowState.READY
+                applyTagRecord(record, error)
+            }
+        }.start()
+    }
+
+    /** Reads the template record from the tag's User Area (null = blank / foreign data). */
+    private fun readTagRecord(tag: Tag): TemplateTagCodec.Record? {
+        smartTagManager.selectTag(tag)
+        smartTagManager.connect()
+        smartTagManager.waitForIdle()
+
+        val header = smartTagManager.readUserData(
+            TemplateTagCodec.RECORD_ADDRESS,
+            TemplateTagCodec.HEADER_SIZE
+        )
+
+        val total = TemplateTagCodec.peekLength(header)
+        if (total < 0) return null
+
+        val full = smartTagManager.readUserData(TemplateTagCodec.RECORD_ADDRESS, total)
+        return TemplateTagCodec.decode(full)
+    }
+
+    /**
+     * Shows what the tag holds: selects its template in the dropdown and fills
+     * the fields, or leaves everything blank.
+     */
+    private fun applyTagRecord(record: TemplateTagCodec.Record?, error: Exception?) {
+
+        if (error != null) {
+            binding.tagStatusValue.text = "Detected (memory not read)"
+            showTagNote("Could not read the tag memory. Hold the phone on the tag and tap again " +
+                    "after pressing Refresh, or just pick a template.")
+            showWarningResult("Could not read the tag memory: ${rootMessage(error)}")
+            refreshUi()
+            return
+        }
+
+        if (record == null) {
+            binding.tagStatusValue.text = "Detected - no template on tag"
+            showTagNote(null)
+            // Blank tag: keep whatever the user already chose, otherwise blank.
+            rebuildFields()
+            rebuildPreview()
+            refreshUi()
+            showSuccessResult("Smart Tag detected. You can move the phone away.")
+            return
+        }
+
+        val local = repo.get(record.templateId)
+        val fromTag = record.body
+
+        val chosen: Template?
+        var note: String? = null
+
+        if (local != null && (fromTag == null ||
+                    TemplateTagCodec.hashOf(local) == record.templateHash)
+        ) {
+            chosen = local
+            if (fromTag == null && TemplateTagCodec.hashOf(local) != record.templateHash) {
+                note = "This template was changed on the phone after it was uploaded, " +
+                        "so some fields may not line up."
+            }
+        } else if (fromTag != null) {
+            chosen = fromTag
+            if (local == null) {
+                // The tag carries a template this phone does not have: keep a copy.
+                try {
+                    repo.save(fromTag)
+                } catch (_: Exception) {
+                }
+                note = "Template \"${fromTag.name}\" was loaded from the tag memory and saved " +
+                        "on this phone."
+            } else {
+                note = "Showing the version stored on the tag. It differs from the one on this phone."
+            }
+        } else {
+            chosen = null
+            note = "This tag shows a template that is not on this phone and was too big to be " +
+                    "stored on the tag. Select a template to continue."
+        }
+
+        fieldValues.clear()
+        if (chosen != null) {
+            val names = chosen.fieldNames()
+            record.values.forEachIndexed { i, v ->
+                names.getOrNull(i)?.let { fieldValues[it] = v }
+            }
+        }
+
+        activeTemplate = chosen
+        reloadTemplates(chosen?.id)
+        rebuildFields()
         rebuildPreview()
+
+        binding.tagStatusValue.text =
+            if (chosen != null) "Showing: ${chosen.name}" else "Unknown template on tag"
+        showTagNote(note)
         refreshUi()
         showSuccessResult("Smart Tag detected. You can move the phone away.")
     }
@@ -288,7 +432,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         if (expected == null || !expected.contentEquals(idm)) {
             showWarningResult(
                 "This is a different tag. Tap the same tag that was detected, " +
-                        "or press Clear to start over."
+                        "or press Refresh to start over."
             )
             return
         }
@@ -299,119 +443,157 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
 
         refreshUi()
 
-        if (!isFormValid(showErrors = false)) {
-            showWarningResult("Tag verified. Now fill in the employee details.")
+        if (activeTemplate == null) {
+            showWarningResult("Tag verified. Now choose a template.")
         }
     }
 
     // ============================================================
-    // Step 2: form + ID card
+    // Template dropdown
     // ============================================================
 
-    private fun setupTextWatchers() {
-        val watcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
-            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                // Editing the text does NOT require another tap: the card is
-                // rebuilt from the current text at the moment Upload is pressed.
-                validateFieldsQuietly()
+    private fun setupTemplateSpinner() {
+        binding.spinnerTemplate.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val chosen = if (position == 0) null else templates.getOrNull(position - 1)
+
+                // Also fires for programmatic selections: nothing to do then.
+                if (chosen?.id == activeTemplate?.id) return
+
+                activeTemplate = chosen
+                rebuildFields()
                 rebuildPreview()
-                updateButtons()
+                refreshUi()
             }
-        }
 
-        binding.inputEmployeeId.addTextChangedListener(watcher)
-        binding.inputName.addTextChangedListener(watcher)
-        binding.inputEmail.addTextChangedListener(watcher)
-        binding.inputPhone.addTextChangedListener(watcher)
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
-    private fun employeeIdText() = binding.inputEmployeeId.text?.toString().orEmpty().trim()
-    private fun nameText() = binding.inputName.text?.toString().orEmpty().trim()
-    private fun emailText() = binding.inputEmail.text?.toString().orEmpty().trim()
-    private fun phoneText() = binding.inputPhone.text?.toString().orEmpty().trim()
+    private fun reloadTemplates(selectId: String?) {
+        templates = repo.list()
 
-    private fun isEmployeeIdValid(v: String) =
-        v.isNotEmpty() && v.length <= MAX_EMPLOYEE_ID_LENGTH && EMPLOYEE_ID_REGEX.matches(v)
+        val names = listOf(SELECT_HINT) + templates.map { it.name }
+        binding.spinnerTemplate.adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_item, names).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
 
-    private fun isNameValid(v: String) = v.isNotEmpty() && v.length <= MAX_NAME_LENGTH
-
-    private fun isEmailValid(v: String) =
-        v.isNotEmpty() && v.length <= MAX_EMAIL_LENGTH &&
-                Patterns.EMAIL_ADDRESS.matcher(v).matches()
-
-    private fun isPhoneValid(v: String) = PHONE_REGEX.matches(v)
-
-    /** Shows an error under a field only after something was typed in it. */
-    private fun validateFieldsQuietly() {
-        binding.layoutEmployeeId.error =
-            if (employeeIdText().isNotEmpty() && !isEmployeeIdValid(employeeIdText()))
-                "Use letters, numbers, - _ / only" else null
-        binding.layoutName.error =
-            if (nameText().isNotEmpty() && !isNameValid(nameText())) "Name is too long" else null
-        binding.layoutEmail.error =
-            if (emailText().isNotEmpty() && !isEmailValid(emailText())) "Enter a valid email" else null
-        binding.layoutPhone.error =
-            if (phoneText().isNotEmpty() && !isPhoneValid(phoneText())) "Enter a valid phone number" else null
+        val index = templates.indexOfFirst { it.id == selectId } + 1   // 0 = hint
+        binding.spinnerTemplate.setSelection(index, false)
     }
 
-    private fun isFormValid(showErrors: Boolean): Boolean {
-        val idOk = isEmployeeIdValid(employeeIdText())
-        val nameOk = isNameValid(nameText())
-        val emailOk = isEmailValid(emailText())
-        val phoneOk = isPhoneValid(phoneText())
-
-        if (showErrors) {
-            if (!idOk) binding.layoutEmployeeId.error = "Enter the employee ID"
-            if (!nameOk) binding.layoutName.error = "Enter the employee name"
-            if (!emailOk) binding.layoutEmail.error = "Enter a valid email"
-            if (!phoneOk) binding.layoutPhone.error = "Enter a valid phone number"
+    private fun openEditor(templateId: String?) {
+        if (flowState == FlowState.UPLOADING || flowState == FlowState.CLEARING ||
+            flowState == FlowState.READING
+        ) {
+            showWarningResult("Please wait for the current Smart Tag operation to finish.")
+            return
         }
 
-        return idOk && nameOk && emailOk && phoneOk
+        val intent = Intent(this, TemplateEditorActivity::class.java)
+        if (templateId != null) intent.putExtra(TemplateEditorActivity.EXTRA_TEMPLATE_ID, templateId)
+        if (displayWidth > 0 && displayHeight > 0) {
+            intent.putExtra(TemplateEditorActivity.EXTRA_WIDTH, displayWidth)
+            intent.putExtra(TemplateEditorActivity.EXTRA_HEIGHT, displayHeight)
+        }
+        editorLauncher.launch(intent)
     }
 
-    private fun loadLogo(): Bitmap? = try {
-        // Down-sample a very large logo; the tag is at most 480 px wide.
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeResource(resources, R.drawable.bartech_logo, bounds)
+    private fun onEditorFinished(savedId: String?) {
+        val saved = savedId?.let { repo.get(it) }
 
-        var sample = 1
-        while (bounds.outWidth / sample > 1024 || bounds.outHeight / sample > 1024) {
-            sample *= 2
-        }
+        activeTemplate = saved
+        reloadTemplates(saved?.id)
+        rebuildFields()
+        rebuildPreview()
 
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = sample
-            inScaled = false
-        }
-        BitmapFactory.decodeResource(resources, R.drawable.bartech_logo, options)
-    } catch (_: Exception) {
-        null
+        // The phone moved away while designing: require a fresh tap before uploading.
+        if (flowState == FlowState.READY) isVerified = false
+
+        refreshUi()
     }
 
-    /** Draws the card at exactly the display size. */
-    private fun renderCard(): Bitmap =
-        SmartTagIdCardRenderer.render(
+    // ============================================================
+    // Step 2: fields + preview
+    // ============================================================
+
+    /** One input per {Field} of the active template. */
+    private fun rebuildFields() {
+        binding.fieldsContainer.removeAllViews()
+        fieldInputs.clear()
+
+        val template = activeTemplate
+        if (template == null) {
+            binding.tvFieldsHint.text = "Choose a template to fill in its fields."
+            binding.tvFieldsHint.visibility = View.VISIBLE
+            binding.btnEditTemplate.isEnabled = false
+            return
+        }
+
+        binding.btnEditTemplate.isEnabled = true
+
+        val names = template.fieldNames()
+        if (names.isEmpty()) {
+            binding.tvFieldsHint.text = "This template has no fields. It will be uploaded as designed."
+            binding.tvFieldsHint.visibility = View.VISIBLE
+        } else {
+            binding.tvFieldsHint.visibility = View.GONE
+        }
+
+        for (name in names) {
+            val item = ItemTemplateFieldBinding.inflate(layoutInflater, binding.fieldsContainer, false)
+            item.layoutField.hint = name
+            item.inputField.filters = arrayOf(InputFilter.LengthFilter(MAX_VALUE_LENGTH))
+            item.inputField.setText(fieldValues[name].orEmpty())
+
+            item.inputField.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+                override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    fieldValues[name] = s?.toString().orEmpty()
+                    rebuildPreview()
+                    updateButtons()
+                }
+            })
+
+            binding.fieldsContainer.addView(item.root)
+            fieldInputs += item.inputField
+        }
+    }
+
+    /** Values of the active template's fields, trimmed. */
+    private fun currentValues(): Map<String, String> {
+        val template = activeTemplate ?: return emptyMap()
+        return template.fieldNames().associateWith { fieldValues[it].orEmpty().trim() }
+    }
+
+    private fun barcodeProblems(): List<String> {
+        val template = activeTemplate ?: return emptyList()
+        if (displayWidth <= 0 || displayHeight <= 0) return emptyList()
+        return TemplateRenderer.barcodeProblems(template, displayWidth, displayHeight, currentValues())
+    }
+
+    /** Draws the template at exactly the display size. */
+    private fun renderTemplate(template: Template): Bitmap =
+        TemplateRenderer.render(
+            template = template,
             width = displayWidth,
             height = displayHeight,
-            logo = logo,
-            employeeId = employeeIdText(),
-            name = nameText(),
-            email = emailText(),
-            phone = phoneText()
+            values = currentValues(),
+            previewMode = false,
+            images = { id -> repo.loadImage(id) }
         )
 
     /**
-     * Converts the card to the tag's 1-bit format. The same conversion is
+     * Converts the rendering to the tag's 1-bit format. The same conversion is
      * used for the on-screen preview and for the upload, so the preview is
      * exactly what the tag will show.
      */
-    private fun createPainter(): SmartTagDisplayPainter {
+    private fun createPainter(template: Template): SmartTagDisplayPainter {
         val painter = SmartTagDisplayPainter(displayWidth, displayHeight)
         painter.putImage(
-            bitmap = renderCard(),
+            bitmap = renderTemplate(template),
             x = 0,
             y = 0,
             dither = false
@@ -421,9 +603,15 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
 
     private fun rebuildPreview() {
 
-        if (displayWidth <= 0 || displayHeight <= 0) return
+        val template = activeTemplate
 
-        val preview = createPainter().getPreview()
+        if (template == null || displayWidth <= 0 || displayHeight <= 0) {
+            binding.imagePreview.setImageDrawable(null)
+            showWarnings(emptyList())
+            return
+        }
+
+        val preview = createPainter(template).getPreview()
 
         // Nearest-neighbour upscale keeps the pixels crisp.
         val scale = if (displayWidth >= 400) 2 else 3
@@ -435,10 +623,29 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         )
 
         binding.imagePreview.setImageBitmap(enlarged)
+        showWarnings(barcodeProblems())
+    }
+
+    private fun showWarnings(problems: List<String>) {
+        if (problems.isEmpty()) {
+            binding.tvTemplateWarning.visibility = View.GONE
+        } else {
+            binding.tvTemplateWarning.text = problems.joinToString("\n")
+            binding.tvTemplateWarning.visibility = View.VISIBLE
+        }
+    }
+
+    private fun showTagNote(note: String?) {
+        if (note.isNullOrBlank()) {
+            binding.tvTagNote.visibility = View.GONE
+        } else {
+            binding.tvTagNote.text = note
+            binding.tvTagNote.visibility = View.VISIBLE
+        }
     }
 
     // ============================================================
-    // Step 4: upload
+    // Step 4: upload (record first, then the picture)
     // ============================================================
 
     private fun uploadCard() {
@@ -449,12 +656,19 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         }
 
         if (flowState != FlowState.READY || !isVerified) {
-            showWarningResult("Tap the same tag again first, then press Upload ID Card.")
+            showWarningResult("Tap the same tag again first, then press Upload to Tag.")
             return
         }
 
-        if (!isFormValid(showErrors = true)) {
-            showWarningResult("Please fix the highlighted fields.")
+        val template = activeTemplate
+        if (template == null) {
+            showWarningResult("Choose a template first.")
+            return
+        }
+
+        val problems = barcodeProblems()
+        if (problems.isNotEmpty()) {
+            showWarningResult(problems.first())
             return
         }
 
@@ -464,10 +678,17 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
             return
         }
 
+        // Build everything NOW, before the phone has to stay on the tag.
+        val encoded = try {
+            TemplateTagCodec.encode(template, currentValues())
+        } catch (e: TemplateTagException) {
+            showWarningResult(e.message ?: "The data does not fit into the tag memory.")
+            return
+        }
+
         hideKeyboard()
 
-        // Build the 1-bit image NOW, before the phone has to stay on the tag.
-        val data = createPainter().getSmartTagImage(dither = false)
+        val data = createPainter(template).getSmartTagImage(dither = false)
         val width = displayWidth
         val height = displayHeight
         val deepClean = binding.switchDeepClean.isChecked
@@ -485,6 +706,14 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                 smartTagManager.connect()
                 smartTagManager.waitForIdle()
 
+                // The record goes first: it is quick, and the long display refresh
+                // finishes on its own once the picture has been sent.
+                runOnUiThread {
+                    showLoading("Saving template to tag memory...\nKeep the phone on the tag.")
+                }
+                smartTagManager.writeUserData(TemplateTagCodec.RECORD_ADDRESS, encoded.bytes)
+                smartTagManager.waitForIdle()
+
                 if (deepClean) {
                     runOnUiThread {
                         showLoading("Clearing display...\nKeep the phone on the tag.")
@@ -493,7 +722,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                 }
 
                 runOnUiThread {
-                    showLoading("Sending ID card... 0%\nKeep the phone on the tag.")
+                    showLoading("Sending picture... 0%\nKeep the phone on the tag.")
                 }
 
                 var lastPercent = -1
@@ -513,7 +742,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                                     if (sent == total) {
                                         "Refreshing display...\nKeep the phone on the tag."
                                     } else {
-                                        "Sending ID card... $percent%\nKeep the phone on the tag."
+                                        "Sending picture... $percent%\nKeep the phone on the tag."
                                     }
                                 )
                             }
@@ -529,14 +758,23 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                     flowState = FlowState.READY
                     refreshUi()
 
-                    binding.tagStatusValue.text = "ID card uploaded (%.1f s)".format(seconds)
-                    binding.nfcInstructionTitle.text = "ID Card Uploaded Successfully"
-                    binding.nfcInstructionText.text = "Display Updated"
+                    binding.tagStatusValue.text = "Showing: ${template.name}"
+                    binding.nfcInstructionTitle.text = "Template Uploaded Successfully"
+                    binding.nfcInstructionText.text = "Display Updated (%.1f s)".format(seconds)
                     binding.nfcInstructionSubText.text =
                         "You can remove the phone now. To upload again, " +
                                 "tap the same tag once more."
 
-                    showSuccessResult("ID card uploaded. You can remove the phone.")
+                    if (!encoded.bodyIncluded) {
+                        showTagNote(
+                            "The template is too big for the tag memory, so only its ID and " +
+                                    "data were stored. It will be recognised on this phone only."
+                        )
+                    } else {
+                        showTagNote(null)
+                    }
+
+                    showSuccessResult("Template uploaded. You can remove the phone.")
                 }
 
             } catch (e: Exception) {
@@ -547,10 +785,10 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                     binding.tagStatusValue.text = "Upload Failed"
                     refreshUi()
 
-                    binding.nfcInstructionTitle.text = "Unable to Upload ID Card"
+                    binding.nfcInstructionTitle.text = "Unable to Upload"
                     binding.nfcInstructionText.text = "Upload failed"
                     binding.nfcInstructionSubText.text =
-                        "Hold the phone on the Smart Tag and press Upload ID Card again."
+                        "Hold the phone on the Smart Tag and press Upload to Tag again."
 
                     showErrorResult(getRootExceptionMessage(e))
                 }
@@ -567,7 +805,9 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
 
     private fun showClearOptions() {
 
-        if (flowState == FlowState.UPLOADING || flowState == FlowState.CLEARING) {
+        if (flowState == FlowState.UPLOADING || flowState == FlowState.CLEARING ||
+            flowState == FlowState.READING
+        ) {
             showWarningResult("Please wait for the current Smart Tag operation to finish.")
             return
         }
@@ -609,8 +849,8 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Clear tag image")
             .setMessage(
-                "This clears the picture shown on the tag's screen. " +
-                        "Keep the phone on the tag while it works."
+                "This clears the picture shown on the tag's screen and the template stored " +
+                        "in its memory. Keep the phone on the tag while it works."
             )
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Clear") { _, _ -> clearTagImage() }
@@ -637,6 +877,13 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                 smartTagManager.connect()
                 smartTagManager.waitForIdle()
 
+                // Erase the record header so the tag reads as blank next time.
+                smartTagManager.writeUserData(
+                    TemplateTagCodec.RECORD_ADDRESS,
+                    ByteArray(TemplateTagCodec.HEADER_SIZE)
+                )
+                smartTagManager.waitForIdle()
+
                 // Clears the screen and waits until it has really refreshed.
                 smartTagManager.clearDisplay()
 
@@ -650,7 +897,7 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                     binding.nfcInstructionTitle.text = "Tag Image Cleared"
                     binding.nfcInstructionText.text = "Display Cleared"
                     binding.nfcInstructionSubText.text =
-                        "You can remove the phone now. To upload a new ID card, " +
+                        "You can remove the phone now. To upload a new template, " +
                                 "tap the same tag once more."
 
                     showSuccessResult("Tag image cleared. You can remove the phone.")
@@ -690,36 +937,43 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
                 binding.nfcInstructionTitle.text = "AIOI Smart Tag"
                 binding.nfcInstructionText.text = "Tap Smart Tag to Begin"
                 binding.nfcInstructionSubText.text =
-                    "Hold the phone near the tag to detect its display size. " +
-                            "You can move away once it is detected."
+                    "Hold the phone near the tag. Its display size and the template " +
+                            "currently on it are read. You can move away once it is detected."
+            }
+
+            FlowState.READING -> {
+                binding.nfcInstructionTitle.text = "Reading Smart Tag..."
+                binding.nfcInstructionText.text = "Please keep the phone on the tag"
+                binding.nfcInstructionSubText.text = "Reading the template stored in the tag memory."
             }
 
             FlowState.READY -> {
                 binding.nfcInstructionTitle.text = "Smart Tag Ready"
 
                 when {
-                    !isFormValid(showErrors = false) -> {
-                        binding.nfcInstructionText.text = "Step 2: Enter employee details"
+                    activeTemplate == null -> {
+                        binding.nfcInstructionText.text = "Step 2: Choose a template"
                         binding.nfcInstructionSubText.text =
-                            "Move the phone away and fill in Employee ID, Name, Email and Phone."
+                            "Move the phone away, pick a template from the list " +
+                                    "(or create one) and fill in its fields."
                     }
 
                     !isVerified -> {
                         binding.nfcInstructionText.text = "Step 3: Tap the tag again"
                         binding.nfcInstructionSubText.text =
-                            "Tap the same tag again to enable Upload ID Card."
+                            "Tap the same tag again to enable Upload to Tag."
                     }
 
                     else -> {
                         binding.nfcInstructionText.text = "Ready to Upload"
                         binding.nfcInstructionSubText.text =
-                            "Keep the phone near the tag and press Upload ID Card."
+                            "Keep the phone near the tag and press Upload to Tag."
                     }
                 }
             }
 
             FlowState.UPLOADING -> {
-                binding.nfcInstructionTitle.text = "Uploading ID Card..."
+                binding.nfcInstructionTitle.text = "Uploading..."
                 binding.nfcInstructionText.text = "Please keep the phone on the tag"
                 binding.nfcInstructionSubText.text =
                     "The display refresh can take a few seconds."
@@ -738,14 +992,21 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
 
     private fun updateButtons() {
         val ready = isNfcUsable && flowState == FlowState.READY
+        val idle = flowState == FlowState.WAITING_FOR_TAG || flowState == FlowState.READY
 
-        binding.inputEmployeeId.isEnabled = ready
-        binding.inputName.isEnabled = ready
-        binding.inputEmail.isEnabled = ready
-        binding.inputPhone.isEnabled = ready
+        fieldInputs.forEach { it.isEnabled = ready }
+        binding.spinnerTemplate.isEnabled = ready
         binding.switchDeepClean.isEnabled = ready
 
-        setUploadButtonAppearance(ready && isVerified && isFormValid(showErrors = false))
+        binding.btnNewTemplate.isEnabled = idle
+        binding.btnEditTemplate.isEnabled = idle && activeTemplate != null
+
+        val canUpload = ready &&
+                isVerified &&
+                activeTemplate != null &&
+                barcodeProblems().isEmpty()
+
+        setUploadButtonAppearance(canUpload)
     }
 
     private fun setUploadButtonAppearance(enabled: Boolean) {
@@ -773,14 +1034,12 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         displayWidth = 0
         displayHeight = 0
 
-        binding.inputEmployeeId.setText("")
-        binding.inputName.setText("")
-        binding.inputEmail.setText("")
-        binding.inputPhone.setText("")
-        binding.layoutEmployeeId.error = null
-        binding.layoutName.error = null
-        binding.layoutEmail.error = null
-        binding.layoutPhone.error = null
+        activeTemplate = null
+        fieldValues.clear()
+        reloadTemplates(null)
+        rebuildFields()
+        showTagNote(null)
+        showWarnings(emptyList())
 
         binding.imagePreview.setImageDrawable(null)
 
@@ -800,6 +1059,8 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         binding.btnRefresh.setOnClickListener { resetScreen() }
         binding.btnClear.setOnClickListener { showClearOptions() }
         binding.btnUpdate.setOnClickListener { uploadCard() }
+        binding.btnNewTemplate.setOnClickListener { openEditor(null) }
+        binding.btnEditTemplate.setOnClickListener { openEditor(activeTemplate?.id) }
     }
 
     private fun hideKeyboard() {
@@ -821,6 +1082,8 @@ class NFCTagTextImageUpdateActivity : AppCompatActivity() {
         SmartTagProductFamily.SMARTTAG_37 -> "AIOI SmartTag 3.7"
         SmartTagProductFamily.UNKNOWN -> "Unknown AIOI Smart Tag"
     }
+
+    private fun rootMessage(throwable: Throwable) = getRootExceptionMessage(throwable)
 
     private fun getRootExceptionMessage(throwable: Throwable): String {
         var current: Throwable? = throwable

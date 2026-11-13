@@ -35,7 +35,7 @@
         <TextView
             android:id="@+id/txtTitle"
             style="@style/Widget.App.Header.Title"
-            android:text="Employee ID Card" />
+            android:text="Tag Templates" />
 
         <ImageButton
             android:id="@+id/btnRefresh"
@@ -126,6 +126,18 @@
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- ================================================== -->
+            <!-- Design a new template (available before a tag is tapped) -->
+            <!-- ================================================== -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNewTemplate"
+                style="@style/Widget.App.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginTop="12dp"
+                android:text="Create new template" />
 
             <!-- ================================================== -->
             <!-- Tag Information Card                               -->
@@ -268,102 +280,70 @@
                         style="@style/TextAppearance.App.TitleMedium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Employee Details"
+                        android:text="Template"
                         android:textAlignment="center" />
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="10dp"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginBottom="10dp"
                         android:background="@color/border_primary" />
 
-                    <!-- Employee ID -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layoutEmployeeId"
-                        style="@style/Widget.App.TextInputLayout"
+                    <!-- Template dropdown -->
+                    <Spinner
+                        android:id="@+id/spinnerTemplate"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEditTemplate"
+                        style="@style/Widget.App.Button.Outlined"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Employee ID"
-                        app:startIconDrawable="@drawable/ic_barcode_scan">
+                        android:layout_marginTop="8dp"
+                        android:text="Edit this template" />
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/inputEmployeeId"
-                            style="@style/Widget.App.TextInputEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="textCapCharacters|textNoSuggestions"
-                            android:maxLength="15"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Name -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layoutName"
-                        style="@style/Widget.App.TextInputLayout"
+                    <!-- What was found on the tag -->
+                    <TextView
+                        android:id="@+id/tvTagNote"
+                        style="@style/TextAppearance.App.BodyMedium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:visibility="gone"
+                        tools:text="Template loaded from the tag." />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
                         android:layout_marginTop="12dp"
-                        android:hint="Name"
-                        app:startIconDrawable="@drawable/ic_person">
+                        android:layout_marginBottom="6dp"
+                        android:background="@color/border_primary" />
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/inputName"
-                            style="@style/Widget.App.TextInputEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="textPersonName|textCapWords"
-                            android:maxLength="40"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Email -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layoutEmail"
-                        style="@style/Widget.App.TextInputLayout"
+                    <!-- One input per {Field} of the selected template -->
+                    <LinearLayout
+                        android:id="@+id/fieldsContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:hint="Email"
-                        app:startIconDrawable="@drawable/ic_email_outline">
+                        android:orientation="vertical" />
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/inputEmail"
-                            style="@style/Widget.App.TextInputEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="textEmailAddress"
-                            android:maxLength="50"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Contact number -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layoutPhone"
-                        style="@style/Widget.App.TextInputLayout"
+                    <TextView
+                        android:id="@+id/tvFieldsHint"
+                        style="@style/TextAppearance.App.BodyMedium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:hint="Contact Number"
-                        app:startIconDrawable="@drawable/ic_phone_outline">
+                        android:layout_marginTop="6dp"
+                        android:text="Choose a template to fill in its fields." />
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/inputPhone"
-                            style="@style/Widget.App.TextInputEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionDone"
-                            android:inputType="phone"
-                            android:maxLength="20"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
+                    <TextView
+                        android:id="@+id/tvTemplateWarning"
+                        style="@style/TextAppearance.App.BodyMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:textColor="@color/error"
+                        android:visibility="gone" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchDeepClean"
@@ -372,14 +352,6 @@
                         android:layout_marginTop="12dp"
                         android:checked="true"
                         android:text="Clean display first (removes ghosting, slower)" />
-
-                    <TextView
-                        android:id="@+id/formInfoText"
-                        style="@style/TextAppearance.App.BodyMedium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Employee ID, name, email and contact number are combined with the Bartech logo into one ID card image." />
 
                 </LinearLayout>
 
@@ -478,7 +450,7 @@
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:enabled="false"
-            android:text="Upload ID Card" />
+            android:text="Upload to Tag" />
 
         <!-- Clear -->
         <com.google.android.material.button.MaterialButton
